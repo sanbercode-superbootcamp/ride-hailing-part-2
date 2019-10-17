@@ -2,15 +2,15 @@ import { Request, Response } from "express";
 import { get as httpGet } from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
 import { createTracer } from "../lib/tracer";
-import { Span, FORMAT_HTTP_HEADERS, Tags } from "opentracing";
+import { Span, FORMAT_HTTP_HEADERS } from "opentracing";
 
 const tracer = createTracer("monitoring-service");
 
 export async function getRiderReport(req: Request, res: Response) {
   const parentSpan = tracer.startSpan("report");
   const span = tracer.startSpan("parsing_report", { childOf: parentSpan });
-  const rider_id = req.params.rider_id;
 
+  const rider_id = req.params.rider_id;
   if (!rider_id) {
     span.setTag("error", true);
     span.log({
@@ -26,9 +26,11 @@ export async function getRiderReport(req: Request, res: Response) {
     return;
   }
 
-  // get rider position
   let position: RiderPosition;
   let logs: RiderLog[] = [];
+  let performance: RiderPerformance;
+
+  // get rider position
   const span2 = tracer.startSpan("report_get_position", {
     childOf: parentSpan
   });
@@ -60,6 +62,7 @@ export async function getRiderReport(req: Request, res: Response) {
     return;
   }
 
+  //get rider movement log
   const span3 = tracer.startSpan("report_get_movement", {
     childOf: parentSpan
   });
@@ -90,19 +93,52 @@ export async function getRiderReport(req: Request, res: Response) {
     return;
   }
 
+  //get driver performance
+  const span4 = tracer.startSpan("report_get_point", {
+    childOf: parentSpan
+  });
+  try {
+    performance = await getRiderPerformance(rider_id, span4);
+    span4.finish();
+  } catch (err) {
+    span4.setTag("error", true);
+    span4.log({
+      event: "error",
+      message: err.toString()
+    });
+    if (err instanceof StatusCodeError) {
+      res.status(err.statusCode).json({
+        ok: false,
+        error: err.response.body.error
+      });
+      span4.finish();
+      parentSpan.finish();
+      return;
+    }
+    res.status(500).json({
+      ok: false,
+      error: "gagal melakukan request"
+    });
+    span4.finish();
+    parentSpan.finish();
+    return;
+  }
+
   // encode output
-  const span4 = tracer.startSpan("encode_report_result", {
+  const span5 = tracer.startSpan("encode_report_result", {
     childOf: parentSpan
   });
   res.json({
-    ok: true,
+    performance,
     position,
     logs
   });
-  span4.finish();
+  span5.finish();
   parentSpan.finish();
 }
 
+
+const PERFORMANCE_PORT = process.env["PERFORMANCE_PORT"] || 3003;
 const POSITION_PORT = process.env["POSITION_PORT"] || 3001;
 const TRACKER_PORT = process.env["TRACKER_PORT"] || 3000;
 
@@ -111,10 +147,7 @@ export interface RiderPosition {
   longitude: number;
 }
 
-async function getPosition(
-  rider_id: number | string,
-  span: Span
-): Promise<RiderPosition> {
+async function getPosition(rider_id: number | string, span: Span): Promise<RiderPosition> {
   const url = `http://localhost:${POSITION_PORT}/position/${rider_id}`;
 
   const headers = {};
@@ -138,11 +171,9 @@ export interface RiderLog {
   south: number;
 }
 
-async function getMovementLogs(
-  rider_id: number | string,
-  span: Span
-): Promise<RiderLog[]> {
-  tracer.inject(span, FORMAT_HTTP_HEADERS, {});
+async function getMovementLogs(rider_id: number | string, span: Span): Promise<RiderLog[]> {
+  const headers = {};
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
   const res = await httpGet(
     `http://localhost:${TRACKER_PORT}/movement/${rider_id}`,
     {
@@ -151,4 +182,28 @@ async function getMovementLogs(
   );
 
   return res.logs;
+}
+
+// get rider performance
+
+interface RiderPerformance {
+  ok: boolean;
+  point: number;
+}
+
+async function getRiderPerformance(rider_id: number | string, span: Span): Promise<RiderPerformance> {
+  const headers = {};
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+  const res = await httpGet(
+    `http://localhost:${PERFORMANCE_PORT}/point/${rider_id}`,
+    {
+      json: true
+    }
+  );
+
+  return res;
+}
+
+async function getPositionPromise() {
+
 }

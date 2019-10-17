@@ -12,6 +12,7 @@ app.use(cors());
 
 // routing
 app.get("/report/:rider_id", getRiderReport);
+
 app.all("*", (req, res) => res.status(404).send());
 
 const server = createServer(app);
