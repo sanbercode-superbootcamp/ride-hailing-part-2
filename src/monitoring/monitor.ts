@@ -2,9 +2,9 @@ import { Request, Response } from "express";
 import { get as httpGet } from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
 import { createTracer } from "../lib/tracer";
-import { Span, FORMAT_HTTP_HEADERS } from "opentracing";
+import { Span, FORMAT_HTTP_HEADERS, Tags } from "opentracing";
 
-const tracer = createTracer("rider-service");
+const tracer = createTracer("monitoring-service");
 
 export async function getRiderReport(req: Request, res: Response) {
   const parentSpan = tracer.startSpan("report");
@@ -111,16 +111,18 @@ export interface RiderPosition {
   longitude: number;
 }
 
-async function getPosition(rider_id: number | string, span: Span): Promise<RiderPosition> {
+async function getPosition(
+  rider_id: number | string,
+  span: Span
+): Promise<RiderPosition> {
+  const url = `http://localhost:${POSITION_PORT}/position/${rider_id}`;
+
   const headers = {};
-  tracer.inject(span, FORMAT_HTTP_HEADERS, headers)
-  const res = await httpGet(
-    `http://localhost:${POSITION_PORT}/position/${rider_id}`,
-    {
-      json: true,
-      headers
-    }
-  );
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+  const res = await httpGet(url, {
+    json: true,
+    headers
+  });
 
   return {
     latitude: res.latitude,
@@ -136,14 +138,15 @@ export interface RiderLog {
   south: number;
 }
 
-async function getMovementLogs(rider_id: number | string, span: Span): Promise<RiderLog[]> {
-  const headers = {};
-  tracer.inject(span, FORMAT_HTTP_HEADERS, headers)
+async function getMovementLogs(
+  rider_id: number | string,
+  span: Span
+): Promise<RiderLog[]> {
+  tracer.inject(span, FORMAT_HTTP_HEADERS, {});
   const res = await httpGet(
     `http://localhost:${TRACKER_PORT}/movement/${rider_id}`,
     {
-      json: true,
-      headers
+      json: true
     }
   );
 
