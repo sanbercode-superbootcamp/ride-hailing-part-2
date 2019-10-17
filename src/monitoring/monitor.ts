@@ -1,51 +1,105 @@
 import { Request, Response } from "express";
 import { get as httpGet } from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
-import { createTracer } from '../lib/tracer';
+import { createTracer } from "../lib/tracer";
 
-const tracer = createTracer('track-service');
+const tracer = createTracer("rider-service");
 
 export async function getRiderReport(req: Request, res: Response) {
-  const parentSpan = tracer.startSpan('report');
-  const span = tracer.startSpan('parsing_report', { childOf: parentSpan }); // track pake jaeger seberapa lama ini dijalanin
-
+  const parentSpan = tracer.startSpan("report");
+  const span = tracer.startSpan("parsing_report", { childOf: parentSpan });
   const rider_id = req.params.rider_id;
+
   if (!rider_id) {
+    span.setTag("error", true);
+    span.log({
+      event: "error parsing",
+      message: "parameter tidak lengkap"
+    });
     res.status(400).json({
       ok: false,
       error: "parameter tidak lengkap"
     });
+    span.finish();
+    parentSpan.finish();
     return;
   }
 
   // get rider position
   let position: RiderPosition;
   let logs: RiderLog[] = [];
+  const span2 = tracer.startSpan("report_get_position", {
+    childOf: parentSpan
+  });
   try {
+    parentSpan.setTag("rider_id", rider_id);
     position = await getPosition(rider_id);
-    logs = await getMovementLogs(rider_id);
-
+    span2.finish();
   } catch (err) {
+    span2.setTag("error", true);
+    span2.log({
+      event: "error",
+      message: err.toString()
+    });
     if (err instanceof StatusCodeError) {
       res.status(err.statusCode).json({
         ok: false,
         error: err.response.body.error
       });
+      span2.finish();
+      parentSpan.finish();
       return;
     }
     res.status(500).json({
       ok: false,
       error: "gagal melakukan request"
     });
+    span2.finish();
+    parentSpan.finish();
+    return;
+  }
+
+  const span3 = tracer.startSpan("report_get_movement", {
+    childOf: parentSpan
+  });
+  try {
+    logs = await getMovementLogs(rider_id);
+    span3.finish();
+  } catch (err) {
+    span3.setTag("error", true);
+    span3.log({
+      event: "error",
+      message: err.toString()
+    });
+    if (err instanceof StatusCodeError) {
+      res.status(err.statusCode).json({
+        ok: false,
+        error: err.response.body.error
+      });
+      span3.finish();
+      parentSpan.finish();
+      return;
+    }
+    res.status(500).json({
+      ok: false,
+      error: "gagal melakukan request"
+    });
+    span3.finish();
+    parentSpan.finish();
     return;
   }
 
   // encode output
+  const span4 = tracer.startSpan("encode_report_result", {
+    childOf: parentSpan
+  });
   res.json({
     ok: true,
     position,
     logs
   });
+  span4.finish();
+  parentSpan.finish();
 }
 
 const POSITION_PORT = process.env["POSITION_PORT"] || 3001;

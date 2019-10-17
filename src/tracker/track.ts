@@ -1,15 +1,14 @@
 import { Request, Response } from "express";
 import { TrackEvent } from "./orm";
 import { bus } from "../lib/bus";
-import { createTracer } from '../lib/tracer';
+import { createTracer } from "../lib/tracer";
 
-const tracer = createTracer('track-service');
+const tracer = createTracer("track-service");
 
 export async function track(req: Request, res: Response) {
+  const parentSpan = tracer.startSpan("track");
+  const span = tracer.startSpan("parsing_track", { childOf: parentSpan });
   // parsing input
-  const parentSpan = tracer.startSpan('track');
-  const span = tracer.startSpan('track_rider', { childOf: parentSpan }); // track pake jaeger seberapa lama ini dijalanin
-
   const param = req.body;
   if (
     !param.rider_id ||
@@ -18,7 +17,7 @@ export async function track(req: Request, res: Response) {
     !param.east ||
     !param.south
   ) {
-    span.setTag('http_status', 400);
+    span.setTag("error", true);
     span.log({
       event: "error parsing",
       message: "parameter tidak lengkap"
@@ -31,11 +30,16 @@ export async function track(req: Request, res: Response) {
     parentSpan.finish();
     return;
   }
+
   const rider_id = param.rider_id;
   const north = parseFloat(param.north);
   const west = parseFloat(param.west);
   const east = parseFloat(param.east);
   const south = parseFloat(param.south);
+  span.finish();
+
+  const span2 = tracer.startSpan("save_track", { childOf: parentSpan });
+  span.setTag("rider_id", rider_id);
 
   span.setTag("rider_id", rider_id);
 
@@ -50,18 +54,25 @@ export async function track(req: Request, res: Response) {
   try {
     await track.save();
   } catch (err) {
-    span.setTag("http_status", 500);
+    span2.setTag("error", true);
+    span2.log({
+      event: "error parsing",
+      message: err.toString()
+    });
     console.error(err);
     res.status(500).json({
       ok: false,
       message: "gagal menyimpan data"
     });
-    span.finish();
+    span2.finish();
     parentSpan.finish();
     return;
   }
+  span2.finish();
 
-
+  const span3 = tracer.startSpan("publish_track_event", {
+    childOf: parentSpan
+  });
   bus.publish("rider.moved", {
     rider_id,
     north,
@@ -69,14 +80,16 @@ export async function track(req: Request, res: Response) {
     east,
     south
   });
+  span3.finish();
 
   // encode output
+  const span4 = tracer.startSpan("encode_track_result", {
+    childOf: parentSpan
+  });
   res.json({
     ok: true
   });
-
-  span.setTag("http_status", 200);
-  span.finish();
+  span4.finish();
   parentSpan.finish();
 }
 

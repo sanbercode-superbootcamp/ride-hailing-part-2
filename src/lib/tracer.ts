@@ -1,25 +1,25 @@
-import { TracingOptions, TracingConfig, initTracer } from 'jaeger-client';
+import { initTracer, TracingOptions, TracingConfig } from "jaeger-client";
 
 export function createTracer(serviceName: string) {
     const config: TracingConfig = {
         serviceName,
         sampler: {
-            type: 'const',
-            param: 1,
+            type: "const",
+            param: 1
         },
         reporter: {
-            logSpans: true,
+            logSpans: true
         }
     };
     const options: TracingOptions = {
         logger: {
             info(msg) {
-                console.log("MSG", msg);
+                console.log("INFO ", msg);
             },
             error(msg) {
                 console.log("ERROR", msg);
             }
-        },
-    }
+        }
+    };
     return initTracer(config, options);
 }
