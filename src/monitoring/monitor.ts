@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import { get as httpGet } from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
 import { createTracer } from "../lib/tracer";
+import { Span, FORMAT_HTTP_HEADERS, Tags } from "opentracing";
 
-const tracer = createTracer("rider-service");
+const tracer = createTracer("monitoring-service");
 
 export async function getRiderReport(req: Request, res: Response) {
   const parentSpan = tracer.startSpan("report");
@@ -33,7 +34,7 @@ export async function getRiderReport(req: Request, res: Response) {
   });
   try {
     parentSpan.setTag("rider_id", rider_id);
-    position = await getPosition(rider_id);
+    position = await getPosition(rider_id, span2);
     span2.finish();
   } catch (err) {
     span2.setTag("error", true);
@@ -63,7 +64,7 @@ export async function getRiderReport(req: Request, res: Response) {
     childOf: parentSpan
   });
   try {
-    logs = await getMovementLogs(rider_id);
+    logs = await getMovementLogs(rider_id, span3);
     span3.finish();
   } catch (err) {
     span3.setTag("error", true);
@@ -110,13 +111,18 @@ export interface RiderPosition {
   longitude: number;
 }
 
-async function getPosition(rider_id: number | string): Promise<RiderPosition> {
-  const res = await httpGet(
-    `http://localhost:${POSITION_PORT}/position/${rider_id}`,
-    {
-      json: true
-    }
-  );
+async function getPosition(
+  rider_id: number | string,
+  span: Span
+): Promise<RiderPosition> {
+  const url = `http://localhost:${POSITION_PORT}/position/${rider_id}`;
+
+  const headers = {};
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+  const res = await httpGet(url, {
+    json: true,
+    headers
+  });
 
   return {
     latitude: res.latitude,
@@ -132,7 +138,11 @@ export interface RiderLog {
   south: number;
 }
 
-async function getMovementLogs(rider_id: number | string): Promise<RiderLog[]> {
+async function getMovementLogs(
+  rider_id: number | string,
+  span: Span
+): Promise<RiderLog[]> {
+  tracer.inject(span, FORMAT_HTTP_HEADERS, {});
   const res = await httpGet(
     `http://localhost:${TRACKER_PORT}/movement/${rider_id}`,
     {
