@@ -29,6 +29,7 @@ export async function getRiderReport(req: Request, res: Response) {
   // get rider position
   let position: RiderPosition;
   let logs: RiderLog[] = [];
+  let point: scoreRider;
   const span2 = tracer.startSpan("report_get_position", {
     childOf: parentSpan
   });
@@ -90,6 +91,36 @@ export async function getRiderReport(req: Request, res: Response) {
     return;
   }
 
+  const span5 = tracer.startSpan("report_get_point", {
+    childOf: parentSpan
+  });
+  try {
+    point = await getScore(rider_id, span5);
+    span5.finish();
+  } catch (err) {
+    span5.setTag("error", true);
+    span5.log({
+      event: "error",
+      message: err.toString()
+    });
+    if (err instanceof StatusCodeError) {
+      res.status(err.statusCode).json({
+        ok: false,
+        error: err.response.body.error
+      });
+      span5.finish();
+      parentSpan.finish();
+      return;
+    }
+    res.status(500).json({
+      ok: false,
+      error: "gagal melakukan request"
+    });
+    span5.finish();
+    parentSpan.finish();
+    return;
+  }
+
   // encode output
   const span4 = tracer.startSpan("encode_report_result", {
     childOf: parentSpan
@@ -97,7 +128,8 @@ export async function getRiderReport(req: Request, res: Response) {
   res.json({
     ok: true,
     position,
-    logs
+    logs,
+    point
   });
   span4.finish();
   parentSpan.finish();
@@ -105,6 +137,7 @@ export async function getRiderReport(req: Request, res: Response) {
 
 const POSITION_PORT = process.env["POSITION_PORT"] || 3001;
 const TRACKER_PORT = process.env["TRACKER_PORT"] || 3000;
+const SCORE_PORT = process.env["SCORE_PORT"] || 3003;
 
 export interface RiderPosition {
   latitude: number;
@@ -142,13 +175,40 @@ async function getMovementLogs(
   rider_id: number | string,
   span: Span
 ): Promise<RiderLog[]> {
-  tracer.inject(span, FORMAT_HTTP_HEADERS, {});
+  const url = `http://localhost:${TRACKER_PORT}/movement/${rider_id}`
+
+  const headers = {};
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
   const res = await httpGet(
-    `http://localhost:${TRACKER_PORT}/movement/${rider_id}`,
+    url,
     {
-      json: true
+      json: true,
+      headers
     }
   );
 
   return res.logs;
+}
+
+export interface scoreRider {
+  points: number;
+}
+
+async function getScore(
+  rider_id: number | string,
+  span: Span
+): Promise<scoreRider> {
+  const url = `http://localhost:${SCORE_PORT}/point/${rider_id}`
+
+  const headers = {};
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+  const res = await httpGet(
+    url,
+    {
+      json: true,
+      headers
+    }
+  );
+
+  return res.point;
 }

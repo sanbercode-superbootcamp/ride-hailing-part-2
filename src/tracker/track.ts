@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { TrackEvent } from "./orm";
 import { bus } from "../lib/bus";
 import { createTracer } from "../lib/tracer";
+import { FORMAT_HTTP_HEADERS } from "opentracing";
 
 const tracer = createTracer("track-service");
 
@@ -95,16 +96,23 @@ export async function track(req: Request, res: Response) {
 }
 
 export async function getMovementLogs(req: Request, res: Response) {
+  const httpSpan = tracer.extract(FORMAT_HTTP_HEADERS, req.headers);
+  const parentSpan = tracer.startSpan("get_log_track", { childOf: httpSpan });
+  const span = tracer.startSpan("parsing_log_track", {childOf: parentSpan});
   const rider_id = req.params.rider_id;
   if (!rider_id) {
     res.status(400).json({
       ok: false,
       error: "parameter tidak lengkap"
     });
+    span.finish();
+    parentSpan.finish();
     return;
   }
+  span.finish();
 
   // get rider movement logs
+  const span2 = tracer.startSpan("read_logs_track_on_db", { childOf: parentSpan });
   let events = [];
   try {
     events = await TrackEvent.findAll({
@@ -117,10 +125,14 @@ export async function getMovementLogs(req: Request, res: Response) {
       ok: false,
       message: "gagal menyimpan data"
     });
+    span2.finish();
+    parentSpan.finish();
     return;
   }
+  span2.finish();
 
   // encode output
+  const span3 = tracer.startSpan("encode_result", { childOf: parentSpan });
   res.json({
     ok: true,
     logs: events.map((e: any) => ({
@@ -131,4 +143,6 @@ export async function getMovementLogs(req: Request, res: Response) {
       south: e.south
     }))
   });
+  span3.finish();
+  parentSpan.finish();
 }
