@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { get as httpGet } from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
 import { createTracer } from "../lib/tracer";
-import { Span } from "opentracing";
+import { Span, FORMAT_HTTP_HEADERS } from "opentracing";
 
 const tracer = createTracer("rider-service");
 
@@ -24,6 +24,7 @@ export async function getRiderReport(req: Request, res: Response) {
     parentSpan.finish();
     return;
   }
+  span.finish();
 
   // get rider position
   let position: RiderPosition;
@@ -33,7 +34,7 @@ export async function getRiderReport(req: Request, res: Response) {
   });
   try {
     parentSpan.setTag("rider_id", rider_id);
-    position = await getPosition(rider_id);
+    position = await getPosition(rider_id, span2);
     span2.finish();
   } catch (err) {
     span2.setTag("error", true);
@@ -63,7 +64,7 @@ export async function getRiderReport(req: Request, res: Response) {
     childOf: parentSpan
   });
   try {
-    logs = await getMovementLogs(rider_id);
+    logs = await getMovementLogs(rider_id, span3);
     span3.finish();
   } catch (err) {
     span3.setTag("error", true);
@@ -110,11 +111,14 @@ export interface RiderPosition {
   longitude: number;
 }
 
-async function getPosition(rider_id: number | string): Promise<RiderPosition> {
+async function getPosition(rider_id: number | string, span: Span): Promise<RiderPosition> {
+  const headers = {};
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers)
   const res = await httpGet(
     `http://localhost:${POSITION_PORT}/position/${rider_id}`,
     {
-      json: true
+      json: true,
+      headers
     }
   );
 
@@ -132,11 +136,14 @@ export interface RiderLog {
   south: number;
 }
 
-async function getMovementLogs(rider_id: number | string): Promise<RiderLog[]> {
+async function getMovementLogs(rider_id: number | string, span: Span): Promise<RiderLog[]> {
+  const headers = {};
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers)
   const res = await httpGet(
     `http://localhost:${TRACKER_PORT}/movement/${rider_id}`,
     {
-      json: true
+      json: true,
+      headers
     }
   );
 
