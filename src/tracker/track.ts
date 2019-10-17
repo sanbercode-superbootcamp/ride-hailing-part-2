@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { TrackEvent } from "./orm";
 import { bus } from "../lib/bus";
 import { createTracer } from "../lib/tracer";
+import { FORMAT_HTTP_HEADERS } from "opentracing";
 
 const tracer = createTracer("track-service");
 
@@ -92,15 +93,28 @@ export async function track(req: Request, res: Response) {
 }
 
 export async function getMovementLogs(req: Request, res: Response) {
+  const httpSpan = tracer.extract(FORMAT_HTTP_HEADERS, req.headers);
+  const parentSpan = tracer.startSpan("get_movement_logs", { childOf: httpSpan });
+
+  const span = tracer.startSpan("parse_input", { childOf: parentSpan });
   const rider_id = req.params.rider_id;
   if (!rider_id) {
+    span.setTag("error", true);
+    span.log({
+      event: "error parsing",
+      message: "parameter tidak lengkap"
+    });
     res.status(400).json({
       ok: false,
       error: "parameter tidak lengkap"
     });
+    span.finish();
+    parentSpan.finish();
     return;
   }
+  span.finish();
 
+  const span2 = tracer.startSpan("read_database", { childOf: parentSpan });
   // get rider movement logs
   let events = [];
   try {
@@ -110,13 +124,22 @@ export async function getMovementLogs(req: Request, res: Response) {
     });
   } catch (err) {
     console.error(err);
+    span2.setTag("error", true);
+    span2.log({
+      event: "error parsing",
+      message: "error read db"
+    });
     res.status(500).json({
       ok: false,
       message: "gagal menyimpan data"
     });
+    span2.finish();
+    parentSpan.finish();
     return;
   }
+  span2.finish();
 
+  const span3 = tracer.startSpan("encode_output", { childOf: parentSpan });
   // encode output
   res.json({
     ok: true,
@@ -128,4 +151,6 @@ export async function getMovementLogs(req: Request, res: Response) {
       south: e.south
     }))
   });
+  span3.finish();
+  parentSpan.finish();
 }

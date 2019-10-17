@@ -18,7 +18,8 @@
     "build-test": "tsc -p test",
     "watch-tracker": "nodemon --delay 1500ms -e js --watch dist/tracker dist/tracker/index.js",
     "watch-position": "nodemon --delay 1500ms -e js --watch dist/position dist/position/index.js",
-    "watch-monitoring": "nodemon --delay 1500ms -e js --watch dist/monitoring dist/monitoring/index.js"
+    "watch-monitoring": "nodemon --delay 1500ms -e js --watch dist/monitoring dist/monitoring/index.js",
+    "watch-point": "nodemon --delay 1500ms -e js --watch dist/point dist/point/index.js"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.28",

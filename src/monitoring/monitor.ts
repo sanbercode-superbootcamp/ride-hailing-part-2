@@ -3,6 +3,7 @@ import { get as httpGet } from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
 import { createTracer } from "../lib/tracer";
 import { Span, FORMAT_HTTP_HEADERS, Tags } from "opentracing";
+import { reject } from "bluebird";
 
 const tracer = createTracer("monitoring-service");
 
@@ -28,105 +29,116 @@ export async function getRiderReport(req: Request, res: Response) {
   // get rider position
   let position: RiderPosition;
   let logs: RiderLog[] = [];
+  let point: RiderPoint;
+
   const span2 = tracer.startSpan("report_get_position", {
     childOf: parentSpan
   });
-  try {
-    parentSpan.setTag("rider_id", rider_id);
-    position = await getPosition(rider_id, span2);
-    span2.finish();
-  } catch (err) {
-    span2.setTag("error", true);
-    span2.log({
-      event: "error",
-      message: err.toString()
-    });
-    if (err instanceof StatusCodeError) {
-      res.status(err.statusCode).json({
-        ok: false,
-        error: err.response.body.error
-      });
-      span2.finish();
-      parentSpan.finish();
-      return;
-    }
-    res.status(500).json({
-      ok: false,
-      error: "gagal melakukan request"
-    });
-    span2.finish();
-    parentSpan.finish();
-    return;
-  }
-
   const span3 = tracer.startSpan("report_get_movement", {
     childOf: parentSpan
   });
-  try {
-    logs = await getMovementLogs(rider_id, span3);
-    span3.finish();
-  } catch (err) {
-    span3.setTag("error", true);
-    span3.log({
-      event: "error",
-      message: err.toString()
+  const span4 = tracer.startSpan("report_get_point", {
+    childOf: parentSpan
+  });
+
+  const promiseArr = [
+    getPosition(rider_id, span2, parentSpan)
+      .then((dataPos) => {
+        position = dataPos
+      })
+      .catch((err) => {
+        console.log("MASUK ERROR1")
+        throw new Error(err);
+      }),
+    getMovementLogs(rider_id, span3, parentSpan)
+      .then(dataMove => logs = dataMove)
+      .catch((err) => {
+        console.log("MASUK ERROR2")
+        throw new Error(err);
+      }),
+    getPoint(rider_id, span4, parentSpan)
+      .then(dataPoint => point = dataPoint)
+      .catch((err) => {
+        console.log("MASUK ERROR3")
+        throw new Error(err);
+      }),
+  ];
+
+  await Promise.all(promiseArr.map((val, idx) => {
+    return val.catch((err) => {
+      throw new Error(err);
+    })
+  })).then(() => {
+    // encode output
+    const span5 = tracer.startSpan("encode_report_result", {
+      childOf: parentSpan
     });
+    res.json({
+      ok: true,
+      position,
+      logs,
+      point
+    });
+    span5.finish();
+    parentSpan.finish();
+  }).catch((err) => {
+    parentSpan.finish();
+    console.log("KE REJECT");
     if (err instanceof StatusCodeError) {
       res.status(err.statusCode).json({
         ok: false,
         error: err.response.body.error
       });
-      span3.finish();
-      parentSpan.finish();
       return;
     }
     res.status(500).json({
       ok: false,
       error: "gagal melakukan request"
     });
-    span3.finish();
-    parentSpan.finish();
-    return;
-  }
-
-  // encode output
-  const span4 = tracer.startSpan("encode_report_result", {
-    childOf: parentSpan
-  });
-  res.json({
-    ok: true,
-    position,
-    logs
-  });
-  span4.finish();
-  parentSpan.finish();
+  })
 }
 
 const POSITION_PORT = process.env["POSITION_PORT"] || 3001;
 const TRACKER_PORT = process.env["TRACKER_PORT"] || 3000;
+const POINT_PORT = process.env["POINT_PORT"] || 3003;
 
 export interface RiderPosition {
   latitude: number;
   longitude: number;
 }
 
-async function getPosition(
-  rider_id: number | string,
-  span: Span
-): Promise<RiderPosition> {
-  const url = `http://localhost:${POSITION_PORT}/position/${rider_id}`;
+function getPosition(rider_id: number | string, span: Span, parentSpan: Span): Promise<RiderPosition> {
+  return new Promise(async (resolve, reject) => {
+    let position: RiderPosition;
+    try {
+      parentSpan.setTag("rider_id", rider_id);
+      const url = `http://localhost:${POSITION_PORT}/position/${rider_id}`;
 
-  const headers = {};
-  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
-  const res = await httpGet(url, {
-    json: true,
-    headers
+      const headers = {};
+      tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+      const res = await httpGet(url, {
+        json: true,
+        headers
+      });
+
+      position = {
+        latitude: res.latitude,
+        longitude: res.longitude
+      };
+
+      span.finish();
+      resolve(position);
+    } catch (err) {
+      span.setTag("error", true);
+      span.log({
+        event: "error",
+        message: err.toString()
+      });
+      span.finish();
+      reject(err);
+    }
+
   });
-
-  return {
-    latitude: res.latitude,
-    longitude: res.longitude
-  };
 }
 
 export interface RiderLog {
@@ -137,17 +149,64 @@ export interface RiderLog {
   south: number;
 }
 
-async function getMovementLogs(
-  rider_id: number | string,
-  span: Span
-): Promise<RiderLog[]> {
-  tracer.inject(span, FORMAT_HTTP_HEADERS, {});
-  const res = await httpGet(
-    `http://localhost:${TRACKER_PORT}/movement/${rider_id}`,
-    {
-      json: true
-    }
-  );
+function getMovementLogs(rider_id: number | string, span: Span, parentSpan: Span): Promise<RiderLog[]> {
+  return new Promise(async (resolve, reject) => {
+    let logs: RiderLog[];
+    try {
+      const headers = {}
+      tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+      const res = await httpGet(
+        `http://localhost:${TRACKER_PORT}/movement/${rider_id}`,
+        {
+          json: true,
+          headers
+        }
+      );
 
-  return res.logs;
+      logs = res.logs;
+      span.finish();
+      resolve(logs);
+    } catch (err) {
+      span.setTag("error", true);
+      span.log({
+        event: "error",
+        message: err.toString()
+      });
+
+      span.finish();
+      reject();
+    }
+  });
+
+}
+
+export interface RiderPoint {
+  point: number;
+}
+
+function getPoint(rider_id: number | string, span: Span, parentSpan: Span): Promise<RiderPoint> {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const headers = {}
+      tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+      const res = await httpGet(
+        `http://localhost:${POINT_PORT}/point/${rider_id}`,
+        {
+          json: true,
+          headers
+        }
+      );
+
+      span.finish();
+      resolve(res.point);
+    } catch (err) {
+      span.setTag("error", true);
+      span.log({
+        event: "error",
+        message: err.toString()
+      });
+      span.finish();
+      reject()
+    }
+  });
 }
