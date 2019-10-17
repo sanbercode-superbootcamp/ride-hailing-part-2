@@ -1,8 +1,14 @@
 import { Request, Response } from "express";
 import { get as httpGet } from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
+import { createTracer } from '../lib/tracer';
+
+const tracer = createTracer('track-service');
 
 export async function getRiderReport(req: Request, res: Response) {
+  const parentSpan = tracer.startSpan('report');
+  const span = tracer.startSpan('parsing_report', { childOf: parentSpan }); // track pake jaeger seberapa lama ini dijalanin
+
   const rider_id = req.params.rider_id;
   if (!rider_id) {
     res.status(400).json({
@@ -18,6 +24,7 @@ export async function getRiderReport(req: Request, res: Response) {
   try {
     position = await getPosition(rider_id);
     logs = await getMovementLogs(rider_id);
+
   } catch (err) {
     if (err instanceof StatusCodeError) {
       res.status(err.statusCode).json({
