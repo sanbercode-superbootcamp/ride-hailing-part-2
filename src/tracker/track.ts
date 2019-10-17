@@ -1,15 +1,6 @@
 import { Request, Response } from "express";
 import { TrackEvent } from "./orm";
 import { bus } from "../lib/bus";
-<<<<<<< HEAD
-import { Tracer } from 'opentracing'
-import { createTracer } from "../lib/tracer";
-
-const tracer = createTracer('track-service');
-
-export async function track(req: Request, res: Response) {
-  const span = tracer.startSpan('track-rider');
-=======
 import { createTracer } from "../lib/tracer";
 
 const tracer = createTracer("track-service");
@@ -17,7 +8,6 @@ const tracer = createTracer("track-service");
 export async function track(req: Request, res: Response) {
   const parentSpan = tracer.startSpan("track");
   const span = tracer.startSpan("parsing_track", { childOf: parentSpan });
->>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
   // parsing input
   const param = req.body;
   if (
@@ -27,24 +17,17 @@ export async function track(req: Request, res: Response) {
     !param.east ||
     !param.south
   ) {
-<<<<<<< HEAD
-    span.setTag('http_status', 400);
-=======
     span.setTag("error", true);
     span.log({
       event: "error parsing",
       message: "parameter tidak lengkap"
     });
->>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
     res.status(400).json({
       ok: false,
       error: "parameter tidak lengkap"
     });
     span.finish();
-<<<<<<< HEAD
-=======
     parentSpan.finish();
->>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
     return;
   }
 
@@ -82,12 +65,8 @@ export async function track(req: Request, res: Response) {
       ok: false,
       message: "gagal menyimpan data"
     });
-<<<<<<< HEAD
-    span.finish()
-=======
     span2.finish();
     parentSpan.finish();
->>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
     return;
   }
   span2.finish();
@@ -111,13 +90,8 @@ export async function track(req: Request, res: Response) {
   res.json({
     ok: true
   });
-<<<<<<< HEAD
-  span.setTag('http_status', 200);
-  span.finish();
-=======
   span4.finish();
   parentSpan.finish();
->>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
 }
 
 export async function getMovementLogs(req: Request, res: Response) {
