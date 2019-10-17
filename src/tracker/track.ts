@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { TrackEvent } from "./orm";
 import { bus } from "../lib/bus";
+<<<<<<< HEAD
 import { Tracer } from 'opentracing'
 import { createTracer } from "../lib/tracer";
 
@@ -8,6 +9,15 @@ const tracer = createTracer('track-service');
 
 export async function track(req: Request, res: Response) {
   const span = tracer.startSpan('track-rider');
+=======
+import { createTracer } from "../lib/tracer";
+
+const tracer = createTracer("track-service");
+
+export async function track(req: Request, res: Response) {
+  const parentSpan = tracer.startSpan("track");
+  const span = tracer.startSpan("parsing_track", { childOf: parentSpan });
+>>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
   // parsing input
   const param = req.body;
   if (
@@ -17,19 +27,36 @@ export async function track(req: Request, res: Response) {
     !param.east ||
     !param.south
   ) {
+<<<<<<< HEAD
     span.setTag('http_status', 400);
+=======
+    span.setTag("error", true);
+    span.log({
+      event: "error parsing",
+      message: "parameter tidak lengkap"
+    });
+>>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
     res.status(400).json({
       ok: false,
       error: "parameter tidak lengkap"
     });
     span.finish();
+<<<<<<< HEAD
+=======
+    parentSpan.finish();
+>>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
     return;
   }
+
   const rider_id = param.rider_id;
   const north = parseFloat(param.north);
   const west = parseFloat(param.west);
   const east = parseFloat(param.east);
   const south = parseFloat(param.south);
+  span.finish();
+
+  const span2 = tracer.startSpan("save_track", { childOf: parentSpan });
+  span.setTag("rider_id", rider_id);
 
   span.setTag('rider_id', rider_id);
 
@@ -44,16 +71,30 @@ export async function track(req: Request, res: Response) {
   try {
     await track.save();
   } catch (err) {
+    span2.setTag("error", true);
+    span2.log({
+      event: "error parsing",
+      message: err.toString()
+    });
     console.error(err);
     span.setTag('http_status', 500);
     res.status(500).json({
       ok: false,
       message: "gagal menyimpan data"
     });
+<<<<<<< HEAD
     span.finish()
+=======
+    span2.finish();
+    parentSpan.finish();
+>>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
     return;
   }
+  span2.finish();
 
+  const span3 = tracer.startSpan("publish_track_event", {
+    childOf: parentSpan
+  });
   bus.publish("rider.moved", {
     rider_id,
     north,
@@ -61,13 +102,22 @@ export async function track(req: Request, res: Response) {
     east,
     south
   });
+  span3.finish();
 
   // encode output
+  const span4 = tracer.startSpan("encode_track_result", {
+    childOf: parentSpan
+  });
   res.json({
     ok: true
   });
+<<<<<<< HEAD
   span.setTag('http_status', 200);
   span.finish();
+=======
+  span4.finish();
+  parentSpan.finish();
+>>>>>>> 06940fdf238ee9d91c8d29999843fc781a8c26ed
 }
 
 export async function getMovementLogs(req: Request, res: Response) {
