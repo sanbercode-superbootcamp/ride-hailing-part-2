@@ -42,7 +42,7 @@ export async function getRiderReport(req: Request, res: Response) {
   });
 
   const promiseArr = [
-    getPosition(rider_id, span2, parentSpan)
+    getPosition(rider_id, span2)
       .then((dataPos) => {
         position = dataPos
       })
@@ -50,13 +50,13 @@ export async function getRiderReport(req: Request, res: Response) {
         console.log("MASUK ERROR1")
         throw new Error(err);
       }),
-    getMovementLogs(rider_id, span3, parentSpan)
+    getMovementLogs(rider_id, span3)
       .then(dataMove => logs = dataMove)
       .catch((err) => {
         console.log("MASUK ERROR2")
         throw new Error(err);
       }),
-    getPoint(rider_id, span4, parentSpan)
+    getPoint(rider_id, span4)
       .then(dataPoint => point = dataPoint)
       .catch((err) => {
         console.log("MASUK ERROR3")
@@ -107,11 +107,11 @@ export interface RiderPosition {
   longitude: number;
 }
 
-function getPosition(rider_id: number | string, span: Span, parentSpan: Span): Promise<RiderPosition> {
+function getPosition(rider_id: number | string, span: Span): Promise<any> {
   return new Promise(async (resolve, reject) => {
     let position: RiderPosition;
     try {
-      parentSpan.setTag("rider_id", rider_id);
+      // parentSpan.setTag("rider_id", rider_id);
       const url = `http://localhost:${POSITION_PORT}/position/${rider_id}`;
 
       const headers = {};
@@ -125,16 +125,19 @@ function getPosition(rider_id: number | string, span: Span, parentSpan: Span): P
         latitude: res.latitude,
         longitude: res.longitude
       };
-
-      span.finish();
+      if (span) {
+        span.finish();
+      }
       resolve(position);
     } catch (err) {
-      span.setTag("error", true);
-      span.log({
-        event: "error",
-        message: err.toString()
-      });
-      span.finish();
+      if (span) {
+        span.setTag("error", true);
+        span.log({
+          event: "error",
+          message: err.toString()
+        });
+        span.finish();
+      }
       reject(err);
     }
 
@@ -149,7 +152,7 @@ export interface RiderLog {
   south: number;
 }
 
-function getMovementLogs(rider_id: number | string, span: Span, parentSpan: Span): Promise<RiderLog[]> {
+export function getMovementLogs(rider_id: number | string, span: Span): Promise<RiderLog[]> {
   return new Promise(async (resolve, reject) => {
     let logs: RiderLog[];
     try {
@@ -164,17 +167,21 @@ function getMovementLogs(rider_id: number | string, span: Span, parentSpan: Span
       );
 
       logs = res.logs;
-      span.finish();
+      if (span) {
+        span.finish();
+      }
       resolve(logs);
     } catch (err) {
-      span.setTag("error", true);
-      span.log({
-        event: "error",
-        message: err.toString()
-      });
+      if (span) {
+        span.setTag("error", true);
+        span.log({
+          event: "error",
+          message: err.toString()
+        });
 
-      span.finish();
-      reject();
+        span.finish();
+      }
+      reject(err);
     }
   });
 
@@ -184,7 +191,7 @@ export interface RiderPoint {
   point: number;
 }
 
-function getPoint(rider_id: number | string, span: Span, parentSpan: Span): Promise<RiderPoint> {
+function getPoint(rider_id: number | string, span: Span): Promise<any> {
   return new Promise(async (resolve, reject) => {
     try {
       const headers = {}
@@ -196,16 +203,19 @@ function getPoint(rider_id: number | string, span: Span, parentSpan: Span): Prom
           headers
         }
       );
-
-      span.finish();
+      if (span) {
+        span.finish();
+      }
       resolve(res.point);
     } catch (err) {
-      span.setTag("error", true);
-      span.log({
-        event: "error",
-        message: err.toString()
-      });
-      span.finish();
+      if (span) {
+        span.setTag("error", true);
+        span.log({
+          event: "error",
+          message: err.toString()
+        });
+        span.finish();
+      }
       reject()
     }
   });

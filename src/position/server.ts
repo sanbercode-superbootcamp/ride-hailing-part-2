@@ -3,12 +3,17 @@ import * as cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'net';
 import { getPosition } from './position';
+import swaggerUiExpress = require('swagger-ui-express');
+
+
+const swaggerSpec = require('../../swagger/position-apiv1.json')
 
 const PORT = process.env['POSITION_PORT'] || 3001;
 
 const app = express();
 app.set('port', PORT);
 app.use(cors());
+app.use('/apidocs/v1', swaggerUiExpress.serve, swaggerUiExpress.setup(swaggerSpec));
 
 // routing
 app.get('/position/:rider_id', getPosition);

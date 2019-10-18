@@ -11,13 +11,8 @@ export async function track(req: Request, res: Response) {
   const span = tracer.startSpan("parsing_track", { childOf: parentSpan });
   // parsing input
   const param = req.body;
-  if (
-    !param.rider_id ||
-    !param.north ||
-    !param.west ||
-    !param.east ||
-    !param.south
-  ) {
+  console.log(param);
+  if (param.rider_id === undefined || param.north === undefined || param.west === undefined || param.east === undefined || param.south === undefined) {
     span.setTag("error", true);
     span.log({
       event: "error parsing",

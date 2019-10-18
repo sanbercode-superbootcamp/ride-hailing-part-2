@@ -1,0 +1,161 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Monitoring Service",
+        "description": "Service to get report of rider",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "Robith Ritz",
+            "url": "linked.in/robithritz"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "linked.in/robithritz"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3002",
+    "basePath": "",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "Report": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "north": {
+                                "type": "number"
+                            },
+                            "east": {
+                                "type": "number"
+                            },
+                            "west": {
+                                "type": "number"
+                            },
+                            "south": {
+                                "type": "number"
+                            },
+                            "time": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                },
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "latitude": {
+                            "type": "number"
+                        },
+                        "longitude": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "point": {
+                    "type": "number"
+                }
+            }
+        },
+        "InvalidParam": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "parameter tidak lengkap"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "ENODRVR": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "rider tidak ditemukan"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "Default": {
+            "type": "object",
+            "properties": {
+                "oke": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "General Information About Monitoring",
+        "url": "linked.in/robithritz"
+    },
+    "tags": {
+        "name": "Report",
+        "description": "Api related to Driver Report"
+    },
+    "paths": {
+        "/report/{rider_id}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "rider_id",
+                        "in": "path",
+                        "description": "Unique ID dari suatu rider",
+                        "required": true,
+                        "type": "number"
+                    }
+                ],
+                "tags": [
+                    "Report"
+                ],
+                "description": "Getting report of rider.",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data Report",
+                        "schema": {
+                            "$ref": "#/definitions/Report"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed Response, Invalid Param ",
+                        "schema": {
+                            "$ref": "#/definitions/InvalidParam"
+                        }
+                    },
+                    "404": {
+                        "description": "Failed Response, No Driver Found ",
+                        "schema": {
+                            "$ref": "#/definitions/ENODRVR"
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

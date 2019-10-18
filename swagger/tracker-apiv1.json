@@ -1,0 +1,197 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Tracker Service",
+        "description": "Service to track rider",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "Robith Ritz",
+            "url": "linked.in/robithritz"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "linked.in/robithritz"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "Logs": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "north": {
+                                "type": "number"
+                            },
+                            "east": {
+                                "type": "number"
+                            },
+                            "west": {
+                                "type": "number"
+                            },
+                            "south": {
+                                "type": "number"
+                            },
+                            "time": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Default": {
+            "type": "object",
+            "properties": {
+                "oke": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "General Information About Tracker",
+        "url": "linked.in/robithritz"
+    },
+    "tags": {
+        "name": "Logs",
+        "description": "Api related to Logs"
+    },
+    "paths": {
+        "/movement/{rider_id}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "rider_id",
+                        "in": "path",
+                        "description": "Unique ID dari suatu rider",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "description": "Getting movement data logs of rider.",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data Movement Logs",
+                        "schema": {
+                            "$ref": "#/definitions/Logs"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed Response ",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "default": "gagal menyimpan data"
+                                },
+                                "ok": {
+                                    "type": "boolean",
+                                    "default": false
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/track": {
+            "post": {
+                "parameters": [
+                    {
+                        "name": "movement data",
+                        "in": "body",
+                        "description": "Data Movement",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "rider_id": {
+                                    "type": "number"
+                                },
+                                "north": {
+                                    "type": "number",
+                                    "default": 0
+                                },
+                                "east": {
+                                    "type": "number",
+                                    "default": 0
+                                },
+                                "south": {
+                                    "type": "number",
+                                    "default": 0
+                                },
+                                "west": {
+                                    "type": "number",
+                                    "default": 0
+                                }
+                            }
+                        }
+                    }
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "description": "Send Movement Data to Server.",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status Successful",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "ok": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Status Failure",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "default": "parameter tidak lengkap"
+                                },
+                                "ok": {
+                                    "type": "boolean",
+                                    "default": false
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}
