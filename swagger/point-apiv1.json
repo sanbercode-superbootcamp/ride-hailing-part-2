@@ -1,0 +1,126 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Point Service",
+        "description": "Service to Calcuate Point of rider",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "Robith Ritz",
+            "url": "linked.in/robithritz"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "linked.in/robithritz"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3003",
+    "basePath": "",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "Point": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                },
+                "point": {
+                    "type": "number"
+                }
+            }
+        },
+        "InvalidParam": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "parameter tidak lengkap"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "ENODRVR": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "No 'rider_id' of ${rider_id} was found"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "Default": {
+            "type": "object",
+            "properties": {
+                "oke": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "General Information About Point",
+        "url": "linked.in/robithritz"
+    },
+    "tags": {
+        "name": "Point",
+        "description": "Api related to Driver Point"
+    },
+    "paths": {
+        "/point/{rider_id}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "rider_id",
+                        "in": "path",
+                        "description": "Unique ID dari suatu rider",
+                        "required": true,
+                        "type": "number"
+                    }
+                ],
+                "tags": [
+                    "Point"
+                ],
+                "description": "Getting point of rider.",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data Point",
+                        "schema": {
+                            "$ref": "#/definitions/Point"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed Response, Invalid Param ",
+                        "schema": {
+                            "$ref": "#/definitions/InvalidParam"
+                        }
+                    },
+                    "404": {
+                        "description": "Failed Response, No Driver Found ",
+                        "schema": {
+                            "$ref": "#/definitions/ENODRVR"
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

@@ -59,7 +59,7 @@ export async function getPosition(req: Request, res: Response) {
     childOf: httpSpan
   })
 
-  const span = tracer.startSpan("parsing_rider", { childOf: parentSpan });
+  const span = tracer.startSpan("parsing_input", { childOf: parentSpan });
   const rider_id = req.params.rider_id;
   if (!rider_id) {
     span.setTag("error", true);
@@ -75,6 +75,7 @@ export async function getPosition(req: Request, res: Response) {
     parentSpan.finish();
     return;
   }
+  span.finish();
 
   // get rider position
   const span2 = tracer.startSpan("read_position_on_db", {

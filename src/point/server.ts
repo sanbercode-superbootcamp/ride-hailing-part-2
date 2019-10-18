@@ -1,28 +1,29 @@
 import * as express from 'express';
 import * as cors from 'cors';
+import * as bodyParser from 'body-parser';
 import { createServer } from 'http';
 import { Server } from 'net';
-import { getPosition } from './position';
+import { getPoint } from './score';
 import swaggerUiExpress = require('swagger-ui-express');
 
+const swaggerSpec = require('../../swagger/point-apiv1.json');
 
-const swaggerSpec = require('../../swagger/position-apiv1.json')
-
-const PORT = process.env['POSITION_PORT'] || 3001;
+const PORT = process.env['POINT_PORT'] || 3003;
 
 const app = express();
-app.set('port', PORT);
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(cors());
 app.use('/apidocs/v1', swaggerUiExpress.serve, swaggerUiExpress.setup(swaggerSpec));
 
-// routing
-app.get('/position/:rider_id', getPosition);
+app.get('/point/:rider_id', getPoint);
 app.all("*", (req, res) => res.status(404).send());
 
 const server = createServer(app);
 
 export function startServer(): Server {
-  return server.listen(PORT, () => {
-    console.log('server listen on port ', PORT);
-  });
+    return server.listen(PORT, () => {
+        console.log("Server listen on ", PORT);
+    })
 }

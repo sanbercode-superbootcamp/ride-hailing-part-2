@@ -10,6 +10,7 @@
     "start-tracker": "node dist/tracker",
     "start-position": "node dist/position",
     "start-monitoring": "node dist/monitoring",
+    "start-point": "node dist/point",
     "test": "nyc mocha",
     "watch-ts": "tsc -w",
     "dev-test": "tsc -w -p test",
@@ -18,7 +19,8 @@
     "build-test": "tsc -p test",
     "watch-tracker": "nodemon --delay 1500ms -e js --watch dist/tracker dist/tracker/index.js",
     "watch-position": "nodemon --delay 1500ms -e js --watch dist/position dist/position/index.js",
-    "watch-monitoring": "nodemon --delay 1500ms -e js --watch dist/monitoring dist/monitoring/index.js"
+    "watch-monitoring": "nodemon --delay 1500ms -e js --watch dist/monitoring dist/monitoring/index.js",
+    "watch-point": "nodemon --delay 1500ms -e js --watch dist/point dist/point/index.js"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.28",
@@ -34,6 +36,7 @@
     "@types/request": "^2.48.3",
     "@types/request-promise-native": "^1.0.17",
     "@types/sequelize": "^4.28.6",
+    "@types/swagger-ui-express": "^3.0.1",
     "chai": "^4.2.0",
     "concurrently": "^5.0.0",
     "faker": "^4.1.0",
@@ -56,6 +59,7 @@
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "sequelize": "^5.19.6",
-    "source-map-support": "^0.5.13"
+    "source-map-support": "^0.5.13",
+    "swagger-ui-express": "^4.1.2"
   }
 }

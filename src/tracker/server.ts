@@ -1,15 +1,19 @@
 import * as express from "express";
 import * as cors from "cors";
+import * as swaggerUI from 'swagger-ui-express';
 import { createServer } from "http";
 import { Server } from "net";
 import { json as jsonBodyParser } from "body-parser";
 import { track, getMovementLogs } from "./track";
+
+const swaggerSpec = require('../../swagger/tracker-apiv1.json');
 
 const PORT = process.env["TRACKER_PORT"] || 3000;
 
 const app = express();
 app.set("port", PORT);
 app.use(cors());
+app.use("/apidocs/v1", swaggerUI.serve, swaggerUI.setup(swaggerSpec))
 
 // routing
 app.post("/track", jsonBodyParser(), track);
