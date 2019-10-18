@@ -8,7 +8,7 @@ const tracer = createTracer("monitoring-service");
 
 export async function getRiderReport(req: Request, res: Response) {
   const parentSpan = tracer.startSpan("report");
-  const span = tracer.startSpan("parsing_report", { childOf: parentSpan });
+  const span = tracer.startSpan("parsing_input", { childOf: parentSpan });
   const rider_id = req.params.rider_id;
   if (!rider_id) {
     span.setTag("error", true);
@@ -28,7 +28,7 @@ export async function getRiderReport(req: Request, res: Response) {
   // get rider position
   let position: RiderPosition;
   let logs: RiderLog[] = [];
-  const span2 = tracer.startSpan("report_get_position", {
+  const span2 = tracer.startSpan("get_position", {
     childOf: parentSpan
   });
   try {
@@ -61,7 +61,7 @@ export async function getRiderReport(req: Request, res: Response) {
 
 
   // get rider movement
-  const span3 = tracer.startSpan("report_get_movement", {
+  const span3 = tracer.startSpan("get_movement", {
     childOf: parentSpan
   });
   try {
@@ -93,7 +93,7 @@ export async function getRiderReport(req: Request, res: Response) {
 
   // get rider point
   let performance: RiderPerformance;
-  const span4 = tracer.startSpan("report_get_point", {
+  const span4 = tracer.startSpan("get_point", {
     childOf: parentSpan
   });
   try {
