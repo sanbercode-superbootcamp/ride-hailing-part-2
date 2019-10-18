@@ -1,0 +1,94 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Score Service",
+        "descripition": "Service melakukan scoring pada driver.",
+        "termsOfService": "sanbercode.com",
+        "contact":{
+            "name": "Hilmi",
+            "url": "linkedin.com/hilmihi"
+        },
+        "lisence": {
+            "name": "MIT",
+            "url": "linkedin.com/hilmihi"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3001",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "score": {
+            "types": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                },
+                "point": {
+                    "type": "number"
+                }
+            }
+        },
+        "inBody": {
+            "types": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "General Information about Scoring",
+        "url": "linkedin.com/hilmihi"
+    },
+    "tags": [
+        {
+            "name": "score",
+            "description": "API related to position log"
+        }
+    ],
+    "paths": {
+        "/point/{rider_id}": {
+            "get": {
+                "parameters": [ {
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "Unique ID dari suatu driver.",
+                    "required": true
+                }
+                ],            
+                "tags": [
+                    "score"
+                ],
+                "description": "API untuk mengambil data score suatu driver.",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200":{
+                        "description": "Data score dari suatu driver.",
+                        "schemes": {
+                            "type": "object",
+                            "$ref": "#/definitions/score"
+                        }
+                    },
+                    "400": {
+                        "description": "Salah Input"
+                    },
+                    "default": {
+                        "description": "Tidak melakukan apa2"
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

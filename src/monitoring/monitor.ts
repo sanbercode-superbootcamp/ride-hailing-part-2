@@ -121,6 +121,10 @@ export async function getRiderReport(req: Request, res: Response) {
     return;
   }
 
+  //promise all
+  // const promiseArr = [getPosition(rider_id, span2), getMovementLogs(rider_id, span3), getScore(rider_id, span5)];
+  // [position, logs, point] = await Promise.all([getPosition(rider_id, span2), getMovementLogs(rider_id, span3), getScore(rider_id, span5)]);
+
   // encode output
   const span4 = tracer.startSpan("encode_report_result", {
     childOf: parentSpan
@@ -171,7 +175,7 @@ export interface RiderLog {
   south: number;
 }
 
-async function getMovementLogs(
+export async function getMovementLogs(
   rider_id: number | string,
   span: Span
 ): Promise<RiderLog[]> {
