@@ -107,7 +107,7 @@ export interface RiderPosition {
   longitude: number;
 }
 
-function getPosition(rider_id: number | string, span: Span): Promise<any> {
+export function getPosition(rider_id: number | string, span: Span): Promise<RiderPosition> {
   return new Promise(async (resolve, reject) => {
     let position: RiderPosition;
     try {
@@ -191,8 +191,9 @@ export interface RiderPoint {
   point: number;
 }
 
-function getPoint(rider_id: number | string, span: Span): Promise<any> {
+export function getPoint(rider_id: number | string, span: Span): Promise<any> {
   return new Promise(async (resolve, reject) => {
+    let point: RiderPoint;
     try {
       const headers = {}
       tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
@@ -203,10 +204,13 @@ function getPoint(rider_id: number | string, span: Span): Promise<any> {
           headers
         }
       );
+      point = {
+        point: res.point
+      }
       if (span) {
         span.finish();
       }
-      resolve(res.point);
+      resolve(point);
     } catch (err) {
       if (span) {
         span.setTag("error", true);
