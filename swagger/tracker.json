@@ -1,0 +1,152 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Tracker Service",
+    "description": "Service untuk melacak pergerakan driver.",
+    "termsOfService": "sanbercode.com",
+    "contact": {
+      "name": "Mochamad Rizki",
+      "url": "facebook.com/LightingConsole"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "facebook.com/LightingConsole"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:3000",
+  "basePath": "",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "definitions": {
+    "Logs": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "format": "date"
+        },
+        "north": { 
+          "type": "number" 
+        },
+        "west": { 
+          "type": "number" 
+        },
+        "south": { 
+          "type": "number" 
+        },
+        "east": { 
+          "type": "number" 
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "General information about tracker",
+    "url": "facebook.com/LightingConsole"
+  },
+  "tags": {
+    "name": "Logs",
+    "description": "Api related to log"
+  },
+  "paths": {
+    "/movement/{rider_id}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "rider_id",
+            "in": "path",
+            "description": "Unique ID of rider",
+            "required": true
+          }
+        ],
+        "tags": [
+          "Logs"
+        ],
+        "description": "Get driver movement",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Logs of a driver",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/Logs"
+            }
+          },
+          "400": {
+            "description": "Invalid blabla"
+          },
+          "default": {
+
+          }
+        },
+        "deprecated": false
+      }        
+    },
+    "/track": {
+      "post": {
+        "parameters": [
+          {
+            "name": "rider_id",
+            "in": "body",
+            "description": "Unique ID of rider",
+            "required": true
+          },
+          {
+            "name": "north",
+            "in": "body",
+            "description": "Rider movement to north in meter",
+            "required": true
+          },
+          {
+            "name": "west",
+            "in": "body",
+            "description": "Rider movement to west in meter",
+            "required": true
+          },
+          {
+            "name": "south",
+            "in": "body",
+            "description": "Rider movement to south in meter",
+            "required": true
+          },
+          {
+            "name": "east",
+            "in": "body",
+            "description": "Rider movement to east in meter",
+            "required": true
+          }
+        ],
+        "tags": [],
+        "description": "Move rider",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Status",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Invalid blabla"
+          },
+          "default": {
+
+          }
+        },
+        "deprecated": false
+      }        
+    }
+  }
+}

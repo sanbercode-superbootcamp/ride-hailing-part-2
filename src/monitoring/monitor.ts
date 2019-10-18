@@ -59,6 +59,8 @@ export async function getRiderReport(req: Request, res: Response) {
     return;
   }
 
+
+  // get rider movement
   const span3 = tracer.startSpan("report_get_movement", {
     childOf: parentSpan
   });
@@ -89,21 +91,55 @@ export async function getRiderReport(req: Request, res: Response) {
     return;
   }
 
+  // get rider point
+  let performance: RiderPerformance;
+  const span4 = tracer.startSpan("report_get_point", {
+    childOf: parentSpan
+  });
+  try {
+    parentSpan.setTag("rider_id", rider_id);
+    performance = await getPerformance(rider_id, span4);
+    span4.finish();
+  } catch (error) {
+    span4.setTag("error", true);
+    span4.log({
+      event: "error",
+      message: error.toString()
+    });
+    if (error instanceof StatusCodeError) {
+      res.status(error.statusCode).json({
+        ok: false, error: error.response.body.error
+      });
+      span4.finish();
+      parentSpan.finish();
+      return;
+    }
+    res.status(500).json({
+      ok: false,
+      error: "gagal melakukan request"
+    });
+    span4.finish();
+    parentSpan.finish();
+    return;
+  }
+
   // encode output
-  const span4 = tracer.startSpan("encode_report_result", {
+  const span5 = tracer.startSpan("encode_report_result", {
     childOf: parentSpan
   });
   res.json({
     ok: true,
     position,
+    performance,
     logs
   });
-  span4.finish();
+  span5.finish();
   parentSpan.finish();
 }
 
 const POSITION_PORT = process.env["POSITION_PORT"] || 3001;
 const TRACKER_PORT = process.env["TRACKER_PORT"] || 3000;
+const PERFORMANCE_PORT = process.env["PERFORMANCE_PORT"] || 3003;
 
 export interface RiderPosition {
   latitude: number;
@@ -129,6 +165,22 @@ async function getPosition(
   };
 }
 
+export interface RiderPerformance {
+  point: number;
+}
+
+async function getPerformance(
+  rider_id: number | string,
+  span: Span
+): Promise<RiderPerformance> {
+  const headers = {};
+  const url = `http://localhost:${PERFORMANCE_PORT}/point/${rider_id}`
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+  const res = await httpGet(url, { json: true, headers });
+
+  return { point: res.point };
+}
+
 export interface RiderLog {
   time: Date;
   east: number;
@@ -137,7 +189,7 @@ export interface RiderLog {
   south: number;
 }
 
-async function getMovementLogs(
+export async function getMovementLogs(
   rider_id: number | string,
   span: Span
 ): Promise<RiderLog[]> {

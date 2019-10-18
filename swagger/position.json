@@ -1,0 +1,61 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Position Service",
+    "description": "Service untuk melacak posisi driver.",
+    "termsOfService": "sanbercode.com",
+    "contact": {
+      "name": "Mochamad Rizki",
+      "url": ""
+    },
+    "license": {
+      "name": "MIT",
+      "url": ""
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:3001",
+  "basePath": "",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/position/{rider_id}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "rider_id",
+            "in": "path",
+            "description": "Unique ID of rider",
+            "required": true
+          }
+        ],
+        "description": "Get driver position",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Driver position",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Invalid blabla"
+          },
+          "default": {
+            
+          }
+        },
+        "deprecated": false
+      }
+    }
+  }
+}
