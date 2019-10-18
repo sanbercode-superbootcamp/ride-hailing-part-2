@@ -148,7 +148,7 @@ export interface RiderPosition {
   longitude: number;
 }
 
-async function getPosition(
+export async function getPosition(
   rider_id: number | string,
   span: Span
 ): Promise<RiderPosition> {
@@ -191,14 +191,14 @@ export async function getMovementLogs(
     }
   );
 
-  return res.logs;
+  return res;
 }
 
 export interface scoreRider {
   points: number;
 }
 
-async function getScore(
+export async function getScore(
   rider_id: number | string,
   span: Span
 ): Promise<scoreRider> {
@@ -214,5 +214,5 @@ async function getScore(
     }
   );
 
-  return res.point;
+  return res;
 }
