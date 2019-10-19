@@ -58,8 +58,7 @@ export async function getPosition(req: Request, res: Response) {
   const parentSpan = tracer.startSpan("get_position", {
     childOf: httpSpan
   })
-
-  const span = tracer.startSpan("parsing_rider", { childOf: parentSpan });
+  const span = tracer.startSpan("parsing_input", { childOf: parentSpan });
   const rider_id = req.params.rider_id;
   if (!rider_id) {
     span.setTag("error", true);
@@ -77,7 +76,7 @@ export async function getPosition(req: Request, res: Response) {
   }
 
   // get rider position
-  const span2 = tracer.startSpan("read_position_on_db", {
+  const span2 = tracer.startSpan("read_database ", {
     childOf: parentSpan
   });
   const rider = await DriverPosition.findOne({
@@ -102,7 +101,7 @@ export async function getPosition(req: Request, res: Response) {
   span2.finish();
 
   // encode output
-  const span3 = tracer.startSpan("encode_result", {
+  const span3 = tracer.startSpan("encode_output", {
     childOf: parentSpan
   });
   res.json({
