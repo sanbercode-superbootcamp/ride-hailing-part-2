@@ -2,12 +2,13 @@ import { Request, Response } from "express";
 import { get as httpGet } from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
 import { createTracer } from "../lib/tracer";
-import { Span, FORMAT_HTTP_HEADERS, Tags } from "opentracing";
+import { Span, FORMAT_HTTP_HEADERS } from "opentracing";
 
 const tracer = createTracer("monitoring-service");
+const parentSpan = tracer.startSpan("report");
 
 export async function getRiderReport(req: Request, res: Response) {
-  const parentSpan = tracer.startSpan("report");
+  
   const span = tracer.startSpan("parsing_input", { childOf: parentSpan });
   const rider_id = req.params.rider_id;
   if (!rider_id) {
@@ -27,108 +28,81 @@ export async function getRiderReport(req: Request, res: Response) {
 
   // get rider position
   let position: RiderPosition;
-  let logs: RiderLog[] = [];
-  const span2 = tracer.startSpan("get_position", {
-    childOf: parentSpan
-  });
-  try {
-    parentSpan.setTag("rider_id", rider_id);
-    position = await getPosition(rider_id, span2);
-    span2.finish();
-  } catch (err) {
-    span2.setTag("error", true);
-    span2.log({
-      event: "error",
-      message: err.toString()
-    });
-    if (err instanceof StatusCodeError) {
-      res.status(err.statusCode).json({
+  const span2 = tracer.startSpan("get_position", {childOf: parentSpan});
+  await getPosition(rider_id, span2)
+    .then(result => position = result)
+    .catch((err) => {
+      if (err instanceof StatusCodeError) {
+        res.status(err.statusCode).json({
+          ok: false,
+          error: err.response.body.error
+        });
+        span2.finish();
+        parentSpan.finish();
+        return;
+      }
+      res.status(500).json({
         ok: false,
-        error: err.response.body.error
+        error: "gagal melakukan request"
       });
       span2.finish();
       parentSpan.finish();
       return;
-    }
-    res.status(500).json({
-      ok: false,
-      error: "gagal melakukan request"
-    });
-    span2.finish();
-    parentSpan.finish();
-    return;
-  }
-
+    })
 
   // get rider movement
-  const span3 = tracer.startSpan("get_movement", {
-    childOf: parentSpan
-  });
-  try {
-    logs = await getMovementLogs(rider_id, span3);
-    span3.finish();
-  } catch (err) {
-    span3.setTag("error", true);
-    span3.log({
-      event: "error",
-      message: err.toString()
-    });
-    if (err instanceof StatusCodeError) {
-      res.status(err.statusCode).json({
+  let logs: RiderLog[] = [];
+  const span3 = tracer.startSpan("get_movement", {childOf: parentSpan});
+  getMovementLogs(rider_id, span3)
+    .then(result => logs = result)
+    .catch((err) => {
+      if (err instanceof StatusCodeError) {
+        res.status(err.statusCode).json({
+          ok: false,
+          error: err.response.body.error
+        });
+        span3.finish();
+        parentSpan.finish();
+        return;
+      }
+      res.status(500).json({
         ok: false,
-        error: err.response.body.error
+        error: "gagal melakukan request"
       });
       span3.finish();
       parentSpan.finish();
       return;
-    }
-    res.status(500).json({
-      ok: false,
-      error: "gagal melakukan request"
-    });
-    span3.finish();
-    parentSpan.finish();
-    return;
-  }
+    })
 
   // get rider point
   let performance: RiderPerformance;
-  const span4 = tracer.startSpan("get_point", {
-    childOf: parentSpan
-  });
-  try {
-    parentSpan.setTag("rider_id", rider_id);
-    performance = await getPerformance(rider_id, span4);
-    span4.finish();
-  } catch (error) {
-    span4.setTag("error", true);
-    span4.log({
-      event: "error",
-      message: error.toString()
-    });
-    if (error instanceof StatusCodeError) {
-      res.status(error.statusCode).json({
-        ok: false, error: error.response.body.error
+  const span4 = tracer.startSpan("get_point", {childOf: parentSpan});
+  getPerformance(rider_id, span4)
+    .then(result => performance = result)
+    .catch((err) => {
+      if (err instanceof StatusCodeError) {
+        res.status(err.statusCode).json({
+          ok: false,
+          error: err.response.body.error
+        });
+        span4.finish();
+        parentSpan.finish();
+        return;
+      }
+      res.status(500).json({
+        ok: false,
+        error: "gagal melakukan request"
       });
       span4.finish();
       parentSpan.finish();
       return;
-    }
-    res.status(500).json({
-      ok: false,
-      error: "gagal melakukan request"
-    });
-    span4.finish();
-    parentSpan.finish();
-    return;
-  }
+    })
 
   // encode output
   const span5 = tracer.startSpan("encode_report_result", {
     childOf: parentSpan
   });
   res.json({
-    ok: true,
     position,
     performance,
     logs
@@ -145,40 +119,51 @@ export interface RiderPosition {
   latitude: number;
   longitude: number;
 }
+function getPosition(rider_id: number | string, span: Span): Promise<RiderPosition> {
+  return new Promise(async(resolve, reject) => {
+    try {
+      parentSpan.setTag("rider_id", rider_id);
 
-async function getPosition(
-  rider_id: number | string,
-  span: Span
-): Promise<RiderPosition> {
-  const url = `http://localhost:${POSITION_PORT}/position/${rider_id}`;
+      const url = `http://localhost:${POSITION_PORT}/position/${rider_id}`;
+      const headers = {};
+      tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+      const res = await httpGet(url, { json: true, headers });
 
-  const headers = {};
-  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
-  const res = await httpGet(url, {
-    json: true,
-    headers
-  });
-
-  return {
-    latitude: res.latitude,
-    longitude: res.longitude
-  };
+      span.finish();
+      resolve({ latitude: res.latitude, longitude: res.longitude });
+    } catch (error) {
+      span.setTag("error", true);
+      span.log({
+        event: "error",
+        message: error.toString()
+      });
+      reject(error);
+    }
+  })
 }
 
 export interface RiderPerformance {
   point: number;
 }
-
-async function getPerformance(
-  rider_id: number | string,
-  span: Span
-): Promise<RiderPerformance> {
-  const headers = {};
-  const url = `http://localhost:${PERFORMANCE_PORT}/point/${rider_id}`
-  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
-  const res = await httpGet(url, { json: true, headers });
-
-  return { point: res.point };
+function getPerformance(rider_id: number | string, span: Span): Promise<RiderPerformance> {
+  return new Promise(async(resolve, reject) => {
+    try {
+      const headers = {};
+      const url = `http://localhost:${PERFORMANCE_PORT}/point/${rider_id}`
+      tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+      const res = await httpGet(url, { json: true, headers });
+      
+      span.finish();
+      resolve({ point: res.point });
+    } catch (error) {
+      span.setTag("error", true);
+      span.log({
+        event: "error",
+        message: error.toString()
+      });
+      reject(error);
+    }
+  })  
 }
 
 export interface RiderLog {
@@ -188,18 +173,24 @@ export interface RiderLog {
   north: number;
   south: number;
 }
+export function getMovementLogs(rider_id: number | string, span: Span): Promise<RiderLog[]> {
+  return new Promise(async(resolve, reject) => {
+    try {
+      parentSpan.setTag("rider_id", rider_id);
 
-export async function getMovementLogs(
-  rider_id: number | string,
-  span: Span
-): Promise<RiderLog[]> {
-  tracer.inject(span, FORMAT_HTTP_HEADERS, {});
-  const res = await httpGet(
-    `http://localhost:${TRACKER_PORT}/movement/${rider_id}`,
-    {
-      json: true
+      tracer.inject(span, FORMAT_HTTP_HEADERS, {});
+      const url = `http://localhost:${TRACKER_PORT}/movement/${rider_id}`;
+      const res = await httpGet(url, { json: true });
+      
+      span.finish();      
+      resolve(res.logs);
+    } catch (error) {
+      span.setTag("error", true);
+      span.log({
+        event: "error",
+        message: error.toString()
+      });
+      reject(error);
     }
-  );
-
-  return res.logs;
+  })
 }
