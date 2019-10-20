@@ -1,0 +1,161 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Tracker Service",
+        "descripition": "Service melacak suatu driver.",
+        "termsOfService": "sanbercode.com",
+        "contact":{
+            "name": "Hilmi",
+            "url": "linkedin.com/hilmihi"
+        },
+        "lisence": {
+            "name": "MIT",
+            "url": "linkedin.com/hilmihi"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3000",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "Logs": {
+            "types": "object",
+            "properties": {
+                "time": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "east": {
+                    "type": "number"
+                },
+                "west": {
+                    "type": "number"
+                },
+                "north": {
+                    "type": "number"
+                },
+                "south": {
+                    "type": "number"
+                }
+            }
+        },
+        "inBody": {
+            "types": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "General Information about Tracker",
+        "url": "linkedin.com/hilmihi"
+    },
+    "tags": [
+        {
+            "name": "logs",
+            "description": "API related to logs"
+        }, {
+            "name": "post track",
+            "description": "API related to response"
+        }
+    ],
+    "paths": {
+        "/movement/{rider_id}": {
+            "get": {
+                "parameters": [ {
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "Unique ID dari suatu driver.",
+                    "required": true
+                }
+                ],            
+                "tags": [
+                    "Logs"
+                ],
+                "description": "API untuk mengambil data logs suatu driver.",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200":{
+                        "description": "Data logs dari suatu driver.",
+                        "schemes": {
+                            "type": "object",
+                            "$ref": "#/definitions/Logs"
+                        }
+                    },
+                    "400": {
+                        "description": "Salah Input"
+                    },
+                    "default": {
+                        "description": "Tidak melakukan apa2"
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/track": {
+            "post": {
+                "parameters": [ {
+                    "name": "track body",
+                    "in": "body",
+                    "description": "value dari perpindahan north",
+                    "schema": {
+                        "type": "object",
+                        "properties":{
+                            "east": {
+                                "type": "number"
+                            },
+                            "west":{
+                                "type": "number"
+                            },
+                            "south":{
+                                "type": "number"
+                            },
+                            "north":{
+                                "type": "number"
+                            },
+                            "rider_id": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+                ],            
+                "tags": [
+                    "ok"
+                ],
+                "description": "API untuk mengambil menyimpan perubahan gerakan rider.",
+                "consumes": "application/json",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200":{
+                        "description": "Data logs dari suatu driver.",
+                        "schemes": {
+                            "type": "object",
+                            "$ref": "#/definitions/inBody"
+                        }
+                    },
+                    "400": {
+                        "description": "Salah Input"
+                    },
+                    "default": {
+                        "description": "Tidak melakukan apa2"
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

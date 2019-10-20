@@ -1,0 +1,97 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Position Service",
+        "descripition": "Service melakukan positioning pada driver.",
+        "termsOfService": "sanbercode.com",
+        "contact":{
+            "name": "Hilmi",
+            "url": "linkedin.com/hilmihi"
+        },
+        "lisence": {
+            "name": "MIT",
+            "url": "linkedin.com/hilmihi"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3001",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "Position": {
+            "types": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                }
+            }
+        },
+        "inBody": {
+            "types": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "General Information about Position",
+        "url": "linkedin.com/hilmihi"
+    },
+    "tags": [
+        {
+            "name": "position",
+            "description": "API related to position log"
+        }
+    ],
+    "paths": {
+        "/position/{rider_id}": {
+            "get": {
+                "parameters": [ {
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "Unique ID dari suatu driver.",
+                    "required": true
+                }
+                ],            
+                "tags": [
+                    "position"
+                ],
+                "description": "API untuk mengambil data position suatu driver.",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200":{
+                        "description": "Data position dari suatu driver.",
+                        "schemes": {
+                            "type": "object",
+                            "$ref": "#/definitions/Position"
+                        }
+                    },
+                    "400": {
+                        "description": "Salah Input"
+                    },
+                    "default": {
+                        "description": "Tidak melakukan apa2"
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

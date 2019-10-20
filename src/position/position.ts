@@ -75,6 +75,7 @@ export async function getPosition(req: Request, res: Response) {
     parentSpan.finish();
     return;
   }
+  span.finish();
 
   // get rider position
   const span2 = tracer.startSpan("read_position_on_db", {
