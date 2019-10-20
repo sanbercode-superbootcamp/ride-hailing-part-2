@@ -1,0 +1,68 @@
+{
+    "swagger" : "2.0",
+    "info" : {
+        "title" : "Monitoring Service",
+        "description" : "Monitoring Perpindahan Posisi Driver",
+        "termsOfService" : "sanbercode.com",
+        "contact" : {
+            "name" : "Risma",
+            "url" : "facebook.com/ryfauziah"
+        },
+        "license" : {
+            "name" : "MIT",
+            "url" : "linkedin.com/rismayf"
+        },
+        "version" : "1.0.0"
+    },
+    "host" : "localhost:3002",
+    "basePath" : "",
+    "schemes" : ["http"],
+    "consumes" : [
+        "application/json"
+    ],
+    "produces" : [
+        "application/json"
+    ],
+    "definition" : {
+        "MonitoringDriver" : {
+            
+        }
+    },
+    "externalDocs" : {
+        "description" : "General Information about monitoring",
+        "url" : "linkedin.com/rismayf"
+    },
+    "tags" : {
+        "name" : "DriverMonitoring",
+        "description" : "Api related DriverMonitoring"
+    },
+    "paths" : {
+        "/report/{rider_id}" : {
+            "get" : {
+                "parameters" : [{
+                    "name" : "rider_id",
+                    "in" : "path",
+                    "description" : "Unique id dari suatu driver.",
+                    "required" : true
+                }],
+                "tags" : [
+                    "DriverMonitoring"
+                ],
+                "description" : "Api untuk mengambil report driver",
+                "produce" : [
+                    "application/json"
+                ],
+                "responses" : {
+                    "200" : {
+                        "description" : "Report perpindahan dan posisi Driver",
+                        "schema" : {
+                            "type" : "object",
+                            "$ref" : "#/definitions/DriverMonitoring"
+                        }
+                    }
+                },
+                "deprecated" : false
+            }
+        }
+    }
+}

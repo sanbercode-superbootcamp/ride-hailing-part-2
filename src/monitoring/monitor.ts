@@ -28,6 +28,7 @@ export async function getRiderReport(req: Request, res: Response) {
   // get rider position
   let position: RiderPosition;
   let logs: RiderLog[] = [];
+  let performance: RiderPoint;
   const span2 = tracer.startSpan("report_get_position", {
     childOf: parentSpan
   });
@@ -89,6 +90,37 @@ export async function getRiderReport(req: Request, res: Response) {
     return;
   }
 
+  const span5 = tracer.startSpan("report_get_performance", {
+    childOf: parentSpan
+  });
+
+  try {
+    performance = await getPoint(rider_id, span5)
+    span5.finish()
+  } catch (err) {
+    span5.setTag("error", true);
+    span5.log({
+      event: "error",
+      message: err.toString()
+    });
+    if (err instanceof StatusCodeError) {
+      res.status(err.statusCode).json({
+        ok: false,
+        error: err.response.body.error
+      });
+      span5.finish()
+      parentSpan.finish()
+      return;
+    }
+    res.status(500).json({
+      ok: false,
+      error: "gagal melakukan request"
+    });
+    span5.finish()
+    parentSpan.finish()
+    return;
+  }
+
   // encode output
   const span4 = tracer.startSpan("encode_report_result", {
     childOf: parentSpan
@@ -96,7 +128,8 @@ export async function getRiderReport(req: Request, res: Response) {
   res.json({
     ok: true,
     position,
-    logs
+    logs,
+    performance
   });
   span4.finish();
   parentSpan.finish();
@@ -104,13 +137,14 @@ export async function getRiderReport(req: Request, res: Response) {
 
 const POSITION_PORT = process.env["POSITION_PORT"] || 3001;
 const TRACKER_PORT = process.env["TRACKER_PORT"] || 3000;
+const PERFORMANCE_PORT = process.env["PERFORMANCE_PORT"] || 3003;
 
 export interface RiderPosition {
   latitude: number;
   longitude: number;
 }
 
-async function getPosition(
+export async function getPosition(
   rider_id: number | string,
   span: Span
 ): Promise<RiderPosition> {
@@ -137,7 +171,7 @@ export interface RiderLog {
   south: number;
 }
 
-async function getMovementLogs(
+export async function getMovementLogs(
   rider_id: number | string,
   span: Span
 ): Promise<RiderLog[]> {
@@ -150,4 +184,26 @@ async function getMovementLogs(
   );
 
   return res.logs;
+}
+
+export interface RiderPoint {
+  point : number;
+}
+
+export async function getPoint(
+  rider_id: number | string,
+  span: Span
+): Promise<RiderPoint>{
+  const url = `http://localhost:${PERFORMANCE_PORT}/point/${rider_id}`;
+
+  const headers = {};
+  tracer.inject(span, FORMAT_HTTP_HEADERS, {});
+  const res = await httpGet(url, {
+    json: true,
+    headers
+  });
+
+  return {
+    point : res.point
+  };
 }
