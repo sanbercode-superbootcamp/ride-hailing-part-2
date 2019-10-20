@@ -10,6 +10,15 @@ const db = new Sequelize({
   logging: false
 });
 
+export class PointGenerator extends Model {};
+PointGenerator.init(
+  {
+    rider_id: DataTypes.INTEGER,
+    point: DataTypes.FLOAT
+  },
+  { modelName: 'point_generator', sequelize: db }
+)
+
 export class DriverPosition extends Model {};
 DriverPosition.init(
   {

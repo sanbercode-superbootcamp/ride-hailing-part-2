@@ -8,25 +8,36 @@ const tracer = createTracer("monitoring-service");
 
 export async function getRiderReport(req: Request, res: Response) {
   const parentSpan = tracer.startSpan("report");
-  const span = tracer.startSpan("parsing_report", { childOf: parentSpan });
+  const span = tracer.startSpan("parsing_report", { 
+    childOf: parentSpan 
+  });
   const rider_id = req.params.rider_id;
-  if (!rider_id) {
-    span.setTag("error", true);
-    span.log({
-      event: "error parsing",
-      message: "parameter tidak lengkap"
-    });
-    res.status(400).json({
-      ok: false,
-      error: "parameter tidak lengkap"
-    });
-    span.finish();
-    parentSpan.finish();
-    return;
+  try{
+    if (!rider_id) {
+      span.setTag("error", true);
+      span.log({
+        event: "error parsing",
+        message: "parameter tidak lengkap"
+      });
+      res.status(400).json({
+        ok: false,
+        error: "parameter tidak lengkap"
+      });
+      span.finish();
+      parentSpan.finish();
+      return;
+    }else{
+      span.finish();
+    }
+  }catch(e){
+    console.log(e)
   }
+  
+
 
   // get rider position
   let position: RiderPosition;
+  let point: RiderPoint;
   let logs: RiderLog[] = [];
   const span2 = tracer.startSpan("report_get_position", {
     childOf: parentSpan
@@ -89,19 +100,52 @@ export async function getRiderReport(req: Request, res: Response) {
     return;
   }
 
+  const span4 = tracer.startSpan("report_get_point", {
+    childOf: parentSpan
+  });
+  try {
+    parentSpan.setTag("rider_id", rider_id);
+    point = await getPoint(rider_id, span4);
+    span4.finish();
+  } catch (err) {
+    span4.setTag("error", true);
+    span4.log({
+      event: "error",
+      message: err.toString()
+    });
+    if (err instanceof StatusCodeError) {
+      res.status(err.statusCode).json({
+        ok: false,
+        error: err.response.body.error
+      });
+      span4.finish();
+      parentSpan.finish();
+      return;
+    }
+    res.status(500).json({
+      ok: false,
+      error: "gagal melakukan request"
+    });
+    span4.finish();
+    parentSpan.finish();
+    return;
+  }
+
   // encode output
-  const span4 = tracer.startSpan("encode_report_result", {
+  const span5 = tracer.startSpan("encode_report_result", {
     childOf: parentSpan
   });
   res.json({
     ok: true,
     position,
-    logs
+    logs,
+    points : point['point']
   });
-  span4.finish();
+  span5.finish();
   parentSpan.finish();
 }
 
+const POINT_PORT = process.env["POINT_PORT"] || 3003;
 const POSITION_PORT = process.env["POSITION_PORT"] || 3001;
 const TRACKER_PORT = process.env["TRACKER_PORT"] || 3000;
 
@@ -126,6 +170,28 @@ async function getPosition(
   return {
     latitude: res.latitude,
     longitude: res.longitude
+  };
+}
+
+export interface RiderPoint {
+  point: number;
+}
+
+async function getPoint(
+  rider_id: number | string,
+  span: Span
+): Promise<RiderPoint> {
+  const url = `http://localhost:${POINT_PORT}/point/${rider_id}`;
+
+  const headers = {};
+  tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
+  const res = await httpGet(url, {
+    json: true,
+    headers
+  });
+
+  return {
+    point: res.point
   };
 }
 
