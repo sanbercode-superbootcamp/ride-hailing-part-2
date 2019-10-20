@@ -4,12 +4,18 @@ import { createServer } from 'http';
 import { Server } from 'net';
 import { getPerformance } from './performance';
 import { json as jsonBodyParser } from 'body-parser';
+import * as swaggerUI from "swagger-ui-express";
+
+const swaggerSpec = require("../../swagger/performance.json")
+
 
 const PORT = process.env['RH_PORT'] || 3003;
 
 const app = express();
 app.set('port', PORT);
 app.use(cors());
+
+app.use("/documentations", swaggerUI.serve, swaggerUI.setup(swaggerSpec))
 
 // routing
 app.get('/point/:rider_id', jsonBodyParser(), getPerformance);

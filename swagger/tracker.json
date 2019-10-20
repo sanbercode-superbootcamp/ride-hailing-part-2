@@ -44,6 +44,14 @@
                     "type" : "number"
                 }
             }
+        },
+        "inBody" : {
+            "types" : "object",
+            "properties" : {
+                "ok" : {
+                    "type" : "boolean"
+                }
+            }
         }
     },
     "externalDocs" : {
@@ -84,32 +92,30 @@
         },
         "/track" : {
             "post" : {
-                "parameters" : [{
-                    "name" : "rider_id",
-                    "in" : "body",
-                    "description" : "Unique id dari suatu driver.",
-                    "required" : true
-
-                },{
-                    "name" : "north",
-                    "in" : "body",
-                    "description" : "Perpidahan driver ke Utara",
-                    "required" : true
-                },{
-                    "name" : "west",
-                    "in" : "body",
-                    "description" : "Perpidahan driver ke Barat",
-                    "required" : true
-                },{
-                    "name" : "east",
-                    "in" : "body",
-                    "description" : "Perpidahan driver ke Timur",
-                    "required" : true
-                },{
-                    "name" : "south",
-                    "in" : "body",
-                    "description" : "Perpidahan driver ke Selatan",
-                    "required" : true
+                "parameters": [ {
+                    "name": "track driver",
+                    "in": "body",
+                    "description": "perpindahan driver",
+                    "schema": {
+                        "type": "object",
+                        "properties":{
+                            "east": {
+                                "type": "number"
+                            },
+                            "west":{
+                                "type": "number"
+                            },
+                            "south":{
+                                "type": "number"
+                            },
+                            "north":{
+                                "type": "number"
+                            },
+                            "rider_id": {
+                                "type": "number"
+                            }
+                        }
+                    }
                 }],
                 "tags" : [],
                 "description" :"API untuk mengetahui perpindahan driver.",
@@ -120,7 +126,8 @@
                     "200" : {
                         "description" : "Data Perpindahan dari suatu driver.",
                         "schema" : {
-                            "type" : "boolean"
+                            "type" : "object",
+                            "$ref": "#/definitions/inBody"
                         }
                     }
                 },
