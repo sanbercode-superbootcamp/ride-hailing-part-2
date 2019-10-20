@@ -42,6 +42,13 @@ async function positionUpdater(event: Movement) {
     latitude,
     longitude
   );
+
+  bus.publish("rider.position", {
+    rider_id,
+    latitude,
+    longitude
+  });
+
   try {
     await position.update({
       latitude,

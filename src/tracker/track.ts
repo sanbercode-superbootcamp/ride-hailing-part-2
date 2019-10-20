@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { TrackEvent } from "./orm";
 import { bus } from "../lib/bus";
 import { createTracer } from "../lib/tracer";
+import { FORMAT_HTTP_HEADERS, Tags } from "opentracing";
 
 const tracer = createTracer("track-service");
 
@@ -92,22 +93,53 @@ export async function track(req: Request, res: Response) {
 }
 
 export async function getMovementLogs(req: Request, res: Response) {
+  console.log(req.headers);
+  const httpSpan = tracer.extract(FORMAT_HTTP_HEADERS, req.headers);
+  const parentSpan = tracer.startSpan("get_movement_logs", {
+    childOf: httpSpan
+  })
+  const span = tracer.startSpan("parsing_rider", { childOf: parentSpan });
+
   const rider_id = req.params.rider_id;
   if (!rider_id) {
+    span.setTag("error", true);
+    span.log({
+      event: "error parsing",
+      message: "parameter tidak lengkap"
+    });
     res.status(400).json({
       ok: false,
       error: "parameter tidak lengkap"
     });
+    span.finish();
+    parentSpan.finish();
     return;
   }
 
   // get rider movement logs
+  const span2 = tracer.startSpan("read_movement_on_db", {
+    childOf: parentSpan
+  });
   let events = [];
   try {
     events = await TrackEvent.findAll({
       where: { rider_id },
       raw: true
     });
+    if (!events) {
+      span2.setTag("error", true);
+      span2.log({
+        event: "error",
+        message: "rider tidak ditemukan"
+      });
+      res.status(404).json({
+        ok: false,
+        error: "rider tidak ditemukan"
+      });
+      span2.finish();
+      parentSpan.finish();
+      return;
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({
@@ -117,7 +149,12 @@ export async function getMovementLogs(req: Request, res: Response) {
     return;
   }
 
+  span2.finish();
+
   // encode output
+  const span3 = tracer.startSpan("encode_result", {
+    childOf: parentSpan
+  });
   res.json({
     ok: true,
     logs: events.map((e: any) => ({
@@ -128,4 +165,6 @@ export async function getMovementLogs(req: Request, res: Response) {
       south: e.south
     }))
   });
+  span3.finish();
+  parentSpan.finish();
 }
