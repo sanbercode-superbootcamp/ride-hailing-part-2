@@ -1,0 +1,80 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Tracker Service",
+        "description": "Service melacak suautu driver.",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "hasannabil",
+            "url": ""
+        },
+        "license": {
+            "name": "MIT",
+            "url": ""
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3000",
+    "schemes": ["http"],
+    "consumes": [
+        "application/json"
+    ],
+    "produce":[
+        "application/json"
+    ],
+    "definitions": {
+        "Logs": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "east": { "type": "number" },
+                "west": { "type": "number" },
+                "north": { "type": "number" },
+                "south": { "type": "number" }
+                }
+        }
+    },
+    "externalDocs": {
+        "description": "general info about tracker",
+        "url": ""
+    },
+    "tags": {
+        "name": "Logs",
+        "description": "Api related to Log"
+    },
+    "paths": {
+        "/movement/{rider_id}": {
+            "get": {
+                "parameters": [{
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "unique id dari suatu driver",
+                    "required": true
+                }],
+                "tags": [
+                    "Logs"
+                ],
+                "description": "API untuk mengambil data logs suatu driver.",
+                "produce": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data logs dari suatu driver.",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/Logs"
+                        }   
+                    },
+                    "400": {
+                    "description": "salah input"
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

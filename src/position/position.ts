@@ -59,7 +59,7 @@ export async function getPosition(req: Request, res: Response) {
     childOf: httpSpan
   })
 
-  const span = tracer.startSpan("parsing_rider", { childOf: parentSpan });
+  const span = tracer.startSpan("parsing_input_position", { childOf: parentSpan });
   const rider_id = req.params.rider_id;
   if (!rider_id) {
     span.setTag("error", true);
@@ -102,7 +102,7 @@ export async function getPosition(req: Request, res: Response) {
   span2.finish();
 
   // encode output
-  const span3 = tracer.startSpan("encode_result", {
+  const span3 = tracer.startSpan("encode_output_position", {
     childOf: parentSpan
   });
   res.json({
@@ -114,7 +114,7 @@ export async function getPosition(req: Request, res: Response) {
   parentSpan.finish();
 }
 
-export function positionProjector(): number {
+export async function positionProjector() {
   return bus.subscribe("rider.moved", (movement: Movement) => {
     positionUpdater(movement);
   });
