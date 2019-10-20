@@ -30,100 +30,160 @@ export async function getRiderReport(req: Request, res: Response) {
   let position: RiderPosition;
   let logs: RiderLog[] = [];
   let point: scoreRider;
-  const span2 = tracer.startSpan("report_get_position", {
-    childOf: parentSpan
-  });
-  try {
-    parentSpan.setTag("rider_id", rider_id);
-    position = await getPosition(rider_id, span2);
-    span2.finish();
-  } catch (err) {
-    span2.setTag("error", true);
-    span2.log({
-      event: "error",
-      message: err.toString()
-    });
-    if (err instanceof StatusCodeError) {
-      res.status(err.statusCode).json({
-        ok: false,
-        error: err.response.body.error
-      });
-      span2.finish();
-      parentSpan.finish();
-      return;
-    }
-    res.status(500).json({
-      ok: false,
-      error: "gagal melakukan request"
-    });
-    span2.finish();
-    parentSpan.finish();
-    return;
-  }
+  parentSpan.setTag("rider_id", rider_id);
+  // try {
+  //   position = await getPosition(rider_id, span2);
+  //   span2.finish();
+  // } catch (err) {
+  //   span2.setTag("error", true);
+  //   span2.log({
+  //     event: "error",
+  //     message: err.toString()
+  //   });
+  //   if (err instanceof StatusCodeError) {
+  //     res.status(err.statusCode).json({
+  //       ok: false,
+  //       error: err.response.body.error
+  //     });
+  //     span2.finish();
+  //     parentSpan.finish();
+  //     return;
+  //   }
+  //   res.status(500).json({
+  //     ok: false,
+  //     error: "gagal melakukan request"
+  //   });
+  //   span2.finish();
+  //   parentSpan.finish();
+  //   return;
+  // }
 
-  const span3 = tracer.startSpan("report_get_movement", {
-    childOf: parentSpan
-  });
-  try {
-    logs = await getMovementLogs(rider_id, span3);
-    span3.finish();
-  } catch (err) {
-    span3.setTag("error", true);
-    span3.log({
-      event: "error",
-      message: err.toString()
-    });
-    if (err instanceof StatusCodeError) {
-      res.status(err.statusCode).json({
-        ok: false,
-        error: err.response.body.error
-      });
-      span3.finish();
-      parentSpan.finish();
-      return;
-    }
-    res.status(500).json({
-      ok: false,
-      error: "gagal melakukan request"
-    });
-    span3.finish();
-    parentSpan.finish();
-    return;
-  }
+  // const span3 = tracer.startSpan("report_get_movement", {
+  //   childOf: parentSpan
+  // });
+  // try {
+  //   logs = await getMovementLogs(rider_id, span3);
+  //   span3.finish();
+  // } catch (err) {
+  //   span3.setTag("error", true);
+  //   span3.log({
+  //     event: "error",
+  //     message: err.toString()
+  //   });
+  //   if (err instanceof StatusCodeError) {
+  //     res.status(err.statusCode).json({
+  //       ok: false,
+  //       error: err.response.body.error
+  //     });
+  //     span3.finish();
+  //     parentSpan.finish();
+  //     return;
+  //   }
+  //   res.status(500).json({
+  //     ok: false,
+  //     error: "gagal melakukan request"
+  //   });
+  //   span3.finish();
+  //   parentSpan.finish();
+  //   return;
+  // }
 
-  const span5 = tracer.startSpan("report_get_point", {
-    childOf: parentSpan
-  });
-  try {
-    point = await getScore(rider_id, span5);
-    span5.finish();
-  } catch (err) {
-    span5.setTag("error", true);
-    span5.log({
-      event: "error",
-      message: err.toString()
-    });
-    if (err instanceof StatusCodeError) {
-      res.status(err.statusCode).json({
-        ok: false,
-        error: err.response.body.error
-      });
-      span5.finish();
-      parentSpan.finish();
-      return;
-    }
-    res.status(500).json({
-      ok: false,
-      error: "gagal melakukan request"
-    });
-    span5.finish();
-    parentSpan.finish();
-    return;
-  }
+  // const span5 = tracer.startSpan("report_get_point", {
+  //   childOf: parentSpan
+  // });
+  // try {
+  //   point = await getScore(rider_id, span5);
+  //   span5.finish();
+  // } catch (err) {
+  //   span5.setTag("error", true);
+  //   span5.log({
+  //     event: "error",
+  //     message: err.toString()
+  //   });
+  //   if (err instanceof StatusCodeError) {
+  //     res.status(err.statusCode).json({
+  //       ok: false,
+  //       error: err.response.body.error
+  //     });
+  //     span5.finish();
+  //     parentSpan.finish();
+  //     return;
+  //   }
+  //   res.status(500).json({
+  //     ok: false,
+  //     error: "gagal melakukan request"
+  //   });
+  //   span5.finish();
+  //   parentSpan.finish();
+  //   return;
+  // }
 
   //promise all
-  // const promiseArr = [getPosition(rider_id, span2), getMovementLogs(rider_id, span3), getScore(rider_id, span5)];
-  // [position, logs, point] = await Promise.all([getPosition(rider_id, span2), getMovementLogs(rider_id, span3), getScore(rider_id, span5)]);
+  const spanPromiseAll = tracer.startSpan("execute promise all", {
+    childOf: parentSpan
+  });
+  const span2 = tracer.startSpan("report_get_position", {
+    childOf: spanPromiseAll
+  });
+  const span3 = tracer.startSpan("report_get_movement", {
+    childOf: spanPromiseAll
+  });
+  const span5 = tracer.startSpan("report_get_point", {
+    childOf: spanPromiseAll
+  });
+  try {
+    [position, logs, point] = await Promise.all([getPosition(rider_id, span2), getMovementLogs(rider_id, span3), getScore(rider_id, span5)]);
+    spanPromiseAll.finish();
+  } catch (err) {
+    spanPromiseAll.setTag("error", true);
+    spanPromiseAll.log({
+      event: "error",
+      message: err.toString()
+    });
+    if (err instanceof StatusCodeError) {
+      res.status(err.statusCode).json({
+        ok: false,
+        error: err.response.body.error
+      });
+      spanPromiseAll.finish();
+      parentSpan.finish();
+      return;
+    }
+    res.status(500).json({
+      ok: false,
+      error: "gagal melakukan request"
+    });
+    spanPromiseAll.finish();
+    parentSpan.finish();
+    return;
+  }
+
+  if(position){
+    span2.finish();
+  } else{
+    span2.setTag("Error", true);
+    span2.finish();
+    parentSpan.finish();
+    return;
+  }
+
+  if(logs){
+    span3.finish();
+  } else{
+    span3.setTag("Error", true);
+    span3.finish();
+    parentSpan.finish();
+    return;
+  }
+
+  if(point){
+    span5.finish();
+  } else{
+    span5.setTag("Error", true);
+    span5.finish();
+    parentSpan.finish();
+    return;
+  }
 
   // encode output
   const span4 = tracer.startSpan("encode_report_result", {
