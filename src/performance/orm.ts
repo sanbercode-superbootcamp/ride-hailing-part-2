@@ -10,16 +10,15 @@ const db = new Sequelize({
   logging: false
 });
 
-export class DriverPosition extends Model {};
-DriverPosition.init(
+export class Performance extends Model {}
+Performance.init(
   {
     rider_id: DataTypes.INTEGER,
-    latitude: DataTypes.FLOAT,
-    longitude: DataTypes.FLOAT,
+    point: DataTypes.FLOAT
   },
-  { modelName: 'driver_position', sequelize: db }
-)
+  { modelName: "performance", sequelize: db }
+);
 
-export function syncDB(): Promise<Sequelize> {
+export function syncDB() {
   return db.sync();
 }

@@ -1,0 +1,76 @@
+{
+    "swagger" : "2.0",
+    "info" : {
+        "title" : "Position Service",
+        "description" : "Service melacak posisi driver",
+        "termsOfService" : "sanbercode.com",
+        "contact" : {
+            "name" : "Risma",
+            "url" : "linkedin.com/rismayf"
+        },
+        "license" : {
+            "name" : "MIT",
+            "url" : "linkedin.com/rismayf"
+        },
+        "version" : "1.0.0"
+    },
+    "host" : "localhost:3001",
+    "basePath" : "",
+    "schemes" : ["http"],
+    "consumes" : [
+        "application/json"
+    ],
+    "produces" : [
+        "application/json"
+    ],
+    "definitions" : {
+        "DriverPosition" : {
+            "type" : "object",
+            "properties" : {
+                "latitude" : {
+                    "type" : "number"
+                },
+                "longitude" : {
+                    "type" : "number"
+                }
+            }
+        }
+    },
+    "externalDocs" : {
+        "description" : "General information about position",
+        "url" : "linkedin.com/rismayf"
+    },
+    "tags" : {
+        "name" : "position",
+        "description" : "Api related position"
+    },
+    "paths" : {
+        "/position/{rider_id}" :{
+            "get" : {
+                "parameters" : [{
+                    "name" : "rider_id",
+                    "in" : "path",
+                    "description" : "Unique id dari driver",
+                    "required" : true
+                }],
+                "tags" : [
+                    "position"
+                ],
+                "description" : "Api untuk mengambil data posisi driver",
+                "produce" : [
+                    "application/json"
+                ],
+                "responses" : {
+                    "200" : {
+                        "description" : "Data position dari suatu driver",
+                        "schema" : {
+                            "type" : "object",
+                            "$ref" : "#/definitions/DriverPosition"
+                        }
+                    }
+                },
+                "deprecated" : false
+            }
+        }
+    }
+}

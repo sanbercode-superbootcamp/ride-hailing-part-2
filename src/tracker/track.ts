@@ -41,6 +41,8 @@ export async function track(req: Request, res: Response) {
   const span2 = tracer.startSpan("save_track", { childOf: parentSpan });
   span.setTag("rider_id", rider_id);
 
+  span.setTag("rider_id", rider_id)
+
   // save tracking movement
   const track = new TrackEvent({
     rider_id,

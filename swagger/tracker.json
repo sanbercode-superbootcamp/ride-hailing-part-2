@@ -1,0 +1,139 @@
+{
+    "swagger" : "2.0",
+    "info" : {
+        "title" : "Tracker Service",
+        "description" : "Service melacak suatu driver",
+        "termsOfService" : "sanbercode.com",
+        "contact" : {
+            "name" : "Risma",
+            "url" : "facebook.com/ryfauziah"
+        },
+        "license" : {
+            "name" : "MIT",
+            "url" : "linkedin.com/rismayf"
+        },
+        "version" : "1.0.0"
+    },
+    "host" : "localhost:3000",
+    "basePath" : "",
+    "schemes": ["http"],
+    "consumes" : [
+        "application/json"
+    ],
+    "produces" : [
+        "application/json"
+    ],
+    "definitions" : {
+        "Logs" : {
+            "type" : "object",
+            "properties" : {
+                "time" : {
+                    "type" : "string",
+                    "format" : "date"
+                }, 
+                "north" : {
+                    "type" : "number"
+                }, 
+                "west" : {
+                    "type" : "number"
+                }, 
+                "east" : {
+                    "type" : "number"
+                }, 
+                "south" : {
+                    "type" : "number"
+                }
+            }
+        },
+        "inBody" : {
+            "types" : "object",
+            "properties" : {
+                "ok" : {
+                    "type" : "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs" : {
+        "description" : "General Information about tracker",
+        "url" : "linkedin.com/rismayf"
+    },
+    "tags" : {
+        "name" : "Logs",
+        "description" : "Api related logs"
+    },
+    "paths" : {
+        "/movement/{rider_id}" : {
+            "get" : {
+                "parameters" : [{
+                    "name" : "rider_id",
+                    "in" : "path",
+                    "description" : "Unique id dari suatu driver.",
+                    "required" : true
+                }],
+                "tags" : [
+                    "Logs"
+                ],
+                "description" : "API untuk mengambil data logs suatu driver." ,
+                "produce" : [
+                    "application/json"
+                ],
+                "responses" : {
+                    "200" : {
+                        "description" : "Data Logs dari suatu driver.",
+                        "schema" : {
+                            "type" : "object",
+                            "$ref" : "#/definitions/Logs"
+                        }
+                    }
+                },
+                "deprecated" : false
+            }
+        },
+        "/track" : {
+            "post" : {
+                "parameters": [ {
+                    "name": "track driver",
+                    "in": "body",
+                    "description": "perpindahan driver",
+                    "schema": {
+                        "type": "object",
+                        "properties":{
+                            "east": {
+                                "type": "number"
+                            },
+                            "west":{
+                                "type": "number"
+                            },
+                            "south":{
+                                "type": "number"
+                            },
+                            "north":{
+                                "type": "number"
+                            },
+                            "rider_id": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                }],
+                "tags" : [],
+                "description" :"API untuk mengetahui perpindahan driver.",
+                "produce" : [
+                    "application/json"
+                ],
+                "responses" : {
+                    "200" : {
+                        "description" : "Data Perpindahan dari suatu driver.",
+                        "schema" : {
+                            "type" : "object",
+                            "$ref": "#/definitions/inBody"
+                        }
+                    }
+                },
+                "deprecated" : false
+
+            }
+        }
+    }
+}

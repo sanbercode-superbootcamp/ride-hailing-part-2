@@ -1,0 +1,123 @@
+{
+    "swagger" : "2.0",
+    "info" : {
+        "title" : "Monitoring Service",
+        "description" : "Monitoring Driver",
+        "termsOfService" : "sanbercode.com",
+        "contact" : {
+            "name" : "Risma",
+            "url" : "facebook.com/ryfauziah"
+        },
+        "license" : {
+            "name" : "MIT",
+            "url" : "linkedin.com/rismayf"
+        },
+        "version" : "1.0.0"
+    },
+    "host" : "localhost:3002",
+    "basePath" : "",
+    "schemes" : ["http"],
+    "consumes" : [
+        "application/json"
+    ],
+    "produces" : [
+        "application/json"
+    ],
+    "definitions" : {
+        "MonitoringDriver" : {
+            "types": "object",
+            "properties": {
+                "ok" : {
+                    "type" : "boolean"
+                },
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "ok": {
+                            "type": "boolean"
+                        },
+                        "latitude": {
+                            "type": "number"
+                        },
+                        "longitude": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "logs": {
+                    "type": "object",
+                    "properties": {
+                        "time": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "east": {
+                            "type": "number"
+                        },
+                        "west": {
+                            "type": "number"
+                        },
+                        "north": {
+                            "type": "number"
+                        },
+                        "south": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "point": {
+                    "type": "object",
+                    "properties": {
+                        "ok": {
+                            "type": "boolean"
+                        },
+                        "point": {
+                            "type": "number"
+                        }
+                    }
+                }
+            }
+        },
+        "inBody": {
+            "types": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs" : {
+        "description" : "General Information about monitoring",
+        "url" : "linkedin.com/rismayf"
+    },
+    "tags" : {
+        "name" : "DriverMonitoring",
+        "description" : "Api related DriverMonitoring"
+    },
+    "paths" : {
+        "/report/{rider_id}" : {
+            "get": {
+                "parameters": [{
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "Unique ID dari suatu driver.",
+                    "required": true
+                }],            
+                "tags": [ "monitoring" ],
+                "description": "API untuk mengambil data monitoring suatu driver.",
+                "produces": [ "application/json" ],
+                "responses": {
+                    "200":{
+                        "description": "Data Monitoring driver.",
+                        "schemes": {
+                            "type": "object",
+                            "$ref": "#/definitions/MonitoringDriver"
+                        }
+                    }
+                },
+                "deprecated" : false
+            }
+        }
+    }
+}
