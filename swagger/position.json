@@ -1,0 +1,127 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Position Service",
+        "description": "mengupdate posisi dari track",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "Ardhi",
+            "url": "linked.in/ardhi"
+        },
+        "license": {
+            "name": "ITB",
+            "url": "linked.in/ardhi"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3001",
+    "basePath": "",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "Position": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                }
+            }
+        },
+        "InvalidParam": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "patameter tidak lengkap"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "ENODIVER": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "rider tidak ditemukan"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "Default": {
+            "type": "object",
+            "properties": {
+                "oke": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "Deskripsi Service Position",
+        "url": "linked.in/ardhi"
+    },
+    "tags": {
+        "name": "Position",
+        "description": "Api yang berhubungang dengan posisi driver"
+    },
+    "paths": {
+        "/position/{rider_id}": {
+            "get": {
+                "parameters": [{
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "ID unik dari driver",
+                    "required": true,
+                    "type": "number"
+                }],
+                "tags": [
+                    "Position"
+                ],
+                "description": "mendapatkan posisi dari rider",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Posisi terkahir rider",
+                        "schema": {
+                            "$ref": "#/defintiions/Position"
+                        }
+                    },
+                    "400": {
+                        "description": "Gagal, Input tidak cocok",
+                        "schema": {
+                            "$ref": "#/defintiions/InvalidParam"
+                        }
+                    },
+                    "404": {
+                        "description": "Gagal, ID driver tidak ada",
+                        "schema": {
+                            "$ref": "#/defintiions/ENODIRVER"
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

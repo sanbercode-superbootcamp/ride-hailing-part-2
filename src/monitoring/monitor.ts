@@ -138,9 +138,9 @@ export async function getRiderReport(req: Request, res: Response) {
 }
 
 
-const PERFORMANCE_PORT = process.env["PERFORMANCE_PORT"] || 3003;
-const POSITION_PORT = process.env["POSITION_PORT"] || 3001;
-const TRACKER_PORT = process.env["TRACKER_PORT"] || 3000;
+export const PERFORMANCE_PORT = process.env["PERFORMANCE_PORT"] || 3003;
+export const POSITION_PORT = process.env["POSITION_PORT"] || 3001;
+export const TRACKER_PORT = process.env["TRACKER_PORT"] || 3000;
 
 export interface RiderPosition {
   latitude: number;
@@ -171,7 +171,7 @@ export interface RiderLog {
   south: number;
 }
 
-async function getMovementLogs(rider_id: number | string, span: Span): Promise<RiderLog[]> {
+export async function getMovementLogs(rider_id: number | string, span: Span): Promise<RiderLog[]> {
   const headers = {};
   tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
   const res = await httpGet(
@@ -191,7 +191,7 @@ interface RiderPerformance {
   point: number;
 }
 
-async function getRiderPerformance(rider_id: number | string, span: Span): Promise<RiderPerformance> {
+export async function getRiderPerformance(rider_id: number | string, span: Span): Promise<RiderPerformance> {
   const headers = {};
   tracer.inject(span, FORMAT_HTTP_HEADERS, headers);
   const res = await httpGet(

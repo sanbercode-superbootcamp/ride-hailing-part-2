@@ -1,0 +1,180 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Tracker Service",
+        "description": "Service untuk melacak suatu driver.",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "Ardhi",
+            "url": "linkedin.com/ardhi"
+
+        },
+        "license": {
+            "name": "MIT",
+            "url": "linkedin.com/ardhi"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "Logs": {
+            "type": "array",
+            "properties": {
+                "time": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "north": {
+                    "type": "number"
+                },
+                "east": {
+                    "type": "number"
+                },
+                "west": {
+                    "type": "number"
+                },
+                "south": {
+                    "type": "number"
+                }
+            }
+        },
+        "Default": {
+            "type": "object",
+            "properties": {
+                "oke": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "general information about tracker",
+        "url": "linkedin.com/ardhi"
+    },
+    "tags": {
+        "name": "Logs",
+        "description": "Api related to Logs"
+    },
+    "paths": {
+        "/movement/{rider_id}": {
+            "get": {
+                "parameters": [{
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "Unique ID dari suatu driver.",
+                    "required": true
+                }],
+                "tags": [
+                    "Logs"
+                ],
+                "description": "API untuk mengambil data logs satu driver",
+                "produces": ["application/json"],
+                "responses": {
+                    "200": {
+                        "description": "Data logs dari suatu driver.",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/Logs"
+                        }
+                    },
+                    "500": {
+                        "description": "Tidak ada response",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "default": "gagal menyimpan data"
+                                },
+                                "ok": {
+                                    "type": "boolean",
+                                    "default": false
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/track": {
+            "post": {
+                "parameters": [{
+                    "name": "data track",
+                    "in": "body",
+                    "description": "track dari suatu driver.",
+                    "required": true,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "rider_id": {
+                                "type": "number"
+                            },
+                            "north": {
+                                "type": "number",
+                                "default": 0
+                            },
+                            "east": {
+                                "type": "number",
+                                "default": 0
+                            },
+                            "south": {
+                                "type": "number",
+                                "default": 0
+                            },
+                            "west": {
+                                "type": "number",
+                                "default": 0
+                            }
+                        }
+                    }
+                }],
+                "tags": [
+                    "Logs"
+                ],
+                "description": "API untuk mengambil data logs satu driver",
+                "produces": ["application/json"],
+                "responses": {
+                    "200": {
+                        "description": "Status Berhasil",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "ok": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Status Gagal",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "default": "parameter tidak lengkap"
+                                },
+                                "ok": {
+                                    "type": "boolean",
+                                    "default": false
+                                }
+                            }
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

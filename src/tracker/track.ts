@@ -25,7 +25,7 @@ export async function track(req: Request, res: Response) {
     })
     res.status(400).json({
       ok: false,
-      error: "parameter tidak lengkap"
+      error: "parameter tidak lengkap gan"
     });
     span.finish();
     parentSpan.finish();
