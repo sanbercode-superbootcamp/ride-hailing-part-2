@@ -1,0 +1,124 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Performance Service",
+        "description": "Service untuk menghitung poin rider",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "Ardhi",
+            "url": "linked.in/ardhi"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "linked.in/ardhi"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3003",
+    "basePath": "",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "Performance": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                },
+                "point": {
+                    "type": "number"
+                }
+            }
+        },
+        "InvalidParam": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "parameter tidak lengkap"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "InvalidDriverID": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "rider ID ${rider_id} tidak ada"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "Default": {
+            "type": "object",
+            "properties": {
+                "oke": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "Informasi mengenai service performance",
+        "url": "linked.in/ardhi"
+    },
+    "tags": {
+        "name": "Performance",
+        "description": "Api berhubungan dengan poin driver"
+    },
+    "paths": {
+        "/point/{rider_id}": {
+            "get": {
+                "parameters": [{
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "Unique ID dari suatu rider",
+                    "required": true,
+                    "type": "number"
+                }],
+                "tags": [
+                    "Performance"
+                ],
+                "description": "meminta poin dari suatu driver",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data poin",
+                        "schema": {
+                            "$ref": "#/definitions/Performance"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed Response, Invalid Param ",
+                        "schema": {
+                            "$ref": "#/definitions/InvalidParam"
+                        }
+                    },
+                    "404": {
+                        "description": "Failed Response, No Driver Found ",
+                        "schema": {
+                            "$ref": "#/definitions/InvalidDriverID"
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

@@ -1,0 +1,156 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Monitor Service",
+        "description": "menampilkan detail data rider",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "Ardhi",
+            "url": "linked.in/ardhi"
+        },
+        "license": {
+            "name": "ITB",
+            "url": "linked.in/ardhi"
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3002",
+    "basePath": "",
+    "schemes": [
+        "http"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "definitions": {
+        "Report": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean"
+                },
+                "Performance": {
+                    "type": "number"
+                },
+                "Position": {
+                    "type": "object",
+                    "properties": {
+                        "latitude": {
+                            "type": "number"
+                        },
+                        "longitude": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "logs": {
+                    "type": "array",
+                    "properties": {
+                        "north": {
+                            "type": "number"
+                        },
+                        "east": {
+                            "type": "number"
+                        },
+                        "west": {
+                            "type": "number"
+                        },
+                        "south": {
+                            "type": "number"
+                        },
+                        "time": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                }
+            }
+        },
+        "InvalidParam": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "patameter tidak lengkap"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "ENODIVER": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "default": "rider tidak ditemukan"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "default": false
+                }
+            }
+        },
+        "Default": {
+            "type": "object",
+            "properties": {
+                "oke": {
+                    "type": "boolean"
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "Deskripsi Service Position",
+        "url": "linked.in/ardhi"
+    },
+    "tags": {
+        "name": "Position",
+        "description": "Api yang berhubungang dengan posisi driver"
+    },
+    "paths": {
+        "/report/{rider_id}": {
+            "get": {
+                "parameters": [{
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "ID unik dari driver",
+                    "required": true,
+                    "type": "number"
+                }],
+                "tags": [
+                    "Report"
+                ],
+                "description": "mendapatkan laporan detil dari rider",
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Laporan terkahir rider",
+                        "schema": {
+                            "$ref": "#/defintiions/Report"
+                        }
+                    },
+                    "400": {
+                        "description": "Gagal, Input tidak cocok",
+                        "schema": {
+                            "$ref": "#/defintiions/InvalidParam"
+                        }
+                    },
+                    "404": {
+                        "description": "Gagal, ID driver tidak ada",
+                        "schema": {
+                            "$ref": "#/defintiions/ENODIRVER"
+                        }
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

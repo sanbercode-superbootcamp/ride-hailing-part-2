@@ -1,8 +1,8 @@
 import { DriverPosition } from "./orm";
 import { bus } from "../lib/bus";
 import { Request, Response } from "express";
+import { FORMAT_HTTP_HEADERS } from "opentracing";
 import { createTracer } from "../lib/tracer";
-import { FORMAT_HTTP_HEADERS, Tags } from "opentracing";
 
 const tracer = createTracer("position-service");
 
@@ -36,12 +36,7 @@ async function positionUpdater(event: Movement) {
   let longitude = parseFloat(position.get("longitude") as string);
   longitude = longitude + east - west;
 
-  console.log(
-    "driver %s position updated to %d and %d",
-    rider_id,
-    latitude,
-    longitude
-  );
+  console.log("driver %s position updated to %d and %d", rider_id, latitude, longitude);
   try {
     await position.update({
       latitude,
@@ -53,13 +48,10 @@ async function positionUpdater(event: Movement) {
 }
 
 export async function getPosition(req: Request, res: Response) {
-  console.log(req.headers);
   const httpSpan = tracer.extract(FORMAT_HTTP_HEADERS, req.headers);
-  const parentSpan = tracer.startSpan("get_position", {
-    childOf: httpSpan
-  })
+  const parentSpan = tracer.startSpan("get_position", { childOf: httpSpan });
+  const span = tracer.startSpan("parsing_input", { childOf: parentSpan });
 
-  const span = tracer.startSpan("parsing_rider", { childOf: parentSpan });
   const rider_id = req.params.rider_id;
   if (!rider_id) {
     span.setTag("error", true);
@@ -71,15 +63,11 @@ export async function getPosition(req: Request, res: Response) {
       ok: false,
       error: "parameter tidak lengkap"
     });
-    span.finish();
-    parentSpan.finish();
     return;
   }
 
   // get rider position
-  const span2 = tracer.startSpan("read_position_on_db", {
-    childOf: parentSpan
-  });
+  const span2 = tracer.startSpan("read_db_position", { childOf: parentSpan });
   const rider = await DriverPosition.findOne({
     where: { rider_id }
   });
@@ -93,22 +81,16 @@ export async function getPosition(req: Request, res: Response) {
       ok: false,
       error: "rider tidak ditemukan"
     });
-    span2.finish();
-    parentSpan.finish();
     return;
   }
   const latitude = rider.get("latitude");
   const longitude = rider.get("longitude");
   span2.finish();
-
   // encode output
-  const span3 = tracer.startSpan("encode_result", {
-    childOf: parentSpan
-  });
+
+  const span3 = tracer.startSpan("encode_result", { childOf: parentSpan });
   res.json({
-    ok: true,
-    latitude,
-    longitude
+    ok: true, latitude, longitude
   });
   span3.finish();
   parentSpan.finish();

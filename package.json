@@ -18,7 +18,8 @@
     "build-test": "tsc -p test",
     "watch-tracker": "nodemon --delay 1500ms -e js --watch dist/tracker dist/tracker/index.js",
     "watch-position": "nodemon --delay 1500ms -e js --watch dist/position dist/position/index.js",
-    "watch-monitoring": "nodemon --delay 1500ms -e js --watch dist/monitoring dist/monitoring/index.js"
+    "watch-monitoring": "nodemon --delay 1500ms -e js --watch dist/monitoring dist/monitoring/index.js",
+    "watch-performance": "nodemon --delay 1500ms -e js --watch dist/performance dist/performance/index.js"
   },
   "devDependencies": {
     "@types/bluebird": "^3.5.28",
@@ -50,12 +51,12 @@
     "express": "^4.17.1",
     "jaeger-client": "^3.17.0",
     "nats": "^1.3.2",
-    "opentracing": "^0.14.4",
     "pg": "^7.12.1",
     "pg-hstore": "^2.3.3",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "sequelize": "^5.19.6",
-    "source-map-support": "^0.5.13"
+    "source-map-support": "^0.5.13",
+    "swagger-ui-express": "^4.1.2"
   }
 }
