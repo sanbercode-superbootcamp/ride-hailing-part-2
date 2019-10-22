@@ -1,0 +1,77 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Performance Service",
+        "description": "Service mengetahui performa driver berdasarkan point yang dimiliki.",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "hasannabil",
+            "url": ""
+        },
+        "license": {
+            "name": "MIT",
+            "url": ""
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3003",
+    "schemes": ["http"],
+    "consumes": [
+        "application/json"
+    ],
+    "produce":[
+        "application/json"
+    ],
+    "definitions": {
+        "Performance": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "point": { "type": "number" }
+                }
+        }
+    },
+    "externalDocs": {
+        "description": "general info about tracker",
+        "url": ""
+    },
+    "tags": {
+        "name": "Position",
+        "description": "Api related to Position"
+    },
+    "paths": {
+        "/point/{rider_id}": {
+            "get": {
+                "parameters": [{
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "unique id dari suatu driver",
+                    "required": true
+                }],
+                "tags": [
+                    "Performance"
+                ],
+                "description": "API untuk mengambil data point yang dimiliki oleh suatu driver.",
+                "produce": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data point yang dimiliki suatu driver.",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/Performance"
+                        }   
+                    },
+                    "400": {
+                    "description": "salah input"
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}

@@ -35,6 +35,31 @@
                 "north": { "type": "number" },
                 "south": { "type": "number" }
                 }
+        },
+        "Move": {
+            "type": "object",
+            "properties": {
+                "rider_id": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "north": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "east": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "west": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "south": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
         }
     },
     "externalDocs": {
@@ -67,6 +92,37 @@
                         "schema": {
                             "type": "object",
                             "$ref": "#/definitions/Logs"
+                        }   
+                    },
+                    "400": {
+                    "description": "salah input"
+                    }
+                },
+                "deprecated": false
+            }
+        },
+        "/track": {
+            "post": {
+                "parameters": [
+                    {
+                        "name": "Input pergerakan",
+                        "in": "body",
+                        "description": "memasukkan rider_id, pergerakan ke utara, timur, barat, dan selatan",
+                        "required": true,
+                        "schema": { "$ref": "#/definitions/Move"}
+                    }
+                ],
+                "tags": [],
+                "description": "API untuk memasukkan nilai arah pergerakan driver.",
+                "produce": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "pergerakan driver.",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/Move"
                         }   
                     },
                     "400": {

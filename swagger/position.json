@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Tracker Service",
-        "description": "Service melacak suautu driver.",
+        "title": "Position Service",
+        "description": "Service mengetahui posisi driver dalam latituda dan longitude.",
         "termsOfService": "sanbercode.com",
         "contact": {
             "name": "hasannabil",
@@ -14,7 +14,7 @@
         },
         "version": "1.0.0"
     },
-    "host": "localhost:3000",
+    "host": "localhost:3001",
     "schemes": ["http"],
     "consumes": [
         "application/json"
@@ -23,17 +23,15 @@
         "application/json"
     ],
     "definitions": {
-        "Logs": {
+        "Position": {
             "type": "object",
             "properties": {
                 "time": {
                     "type": "string",
                     "format": "date"
                 },
-                "east": { "type": "number" },
-                "west": { "type": "number" },
-                "north": { "type": "number" },
-                "south": { "type": "number" }
+                "latitude": { "type": "number" },
+                "longitude": { "type": "number" }
                 }
         }
     },
@@ -42,12 +40,12 @@
         "url": ""
     },
     "tags": {
-        "name": "Logs",
-        "description": "Api related to Log"
+        "name": "Position",
+        "description": "Api related to Position"
     },
     "paths": {
-        "//{rider_id}": {
-            "post": {
+        "/position/{rider_id}": {
+            "get": {
                 "parameters": [{
                     "name": "rider_id",
                     "in": "path",
@@ -55,7 +53,7 @@
                     "required": true
                 }],
                 "tags": [
-                    "Logs"
+                    "Position"
                 ],
                 "description": "API untuk mengambil data logs suatu driver.",
                 "produce": [
@@ -63,10 +61,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "data logs dari suatu driver.",
+                        "description": "data posisi latitude dan longitude dari suatu driver.",
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/Logs"
+                            "$ref": "#/definitions/Position"
                         }   
                     },
                     "400": {
