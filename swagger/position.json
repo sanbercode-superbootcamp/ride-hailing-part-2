@@ -1,0 +1,78 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Position Service",
+        "description": "Service mengetahui posisi driver dalam latituda dan longitude.",
+        "termsOfService": "sanbercode.com",
+        "contact": {
+            "name": "hasannabil",
+            "url": ""
+        },
+        "license": {
+            "name": "MIT",
+            "url": ""
+        },
+        "version": "1.0.0"
+    },
+    "host": "localhost:3001",
+    "schemes": ["http"],
+    "consumes": [
+        "application/json"
+    ],
+    "produce":[
+        "application/json"
+    ],
+    "definitions": {
+        "Position": {
+            "type": "object",
+            "properties": {
+                "time": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "latitude": { "type": "number" },
+                "longitude": { "type": "number" }
+                }
+        }
+    },
+    "externalDocs": {
+        "description": "general info about tracker",
+        "url": ""
+    },
+    "tags": {
+        "name": "Position",
+        "description": "Api related to Position"
+    },
+    "paths": {
+        "/position/{rider_id}": {
+            "get": {
+                "parameters": [{
+                    "name": "rider_id",
+                    "in": "path",
+                    "description": "unique id dari suatu driver",
+                    "required": true
+                }],
+                "tags": [
+                    "Position"
+                ],
+                "description": "API untuk mengambil data logs suatu driver.",
+                "produce": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data posisi latitude dan longitude dari suatu driver.",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/Position"
+                        }   
+                    },
+                    "400": {
+                    "description": "salah input"
+                    }
+                },
+                "deprecated": false
+            }
+        }
+    }
+}
